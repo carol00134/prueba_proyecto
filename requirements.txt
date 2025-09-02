@@ -1,0 +1,167 @@
+# SISTEMA DE APRENDIZAJE FLASK - DEPENDENCIAS
+# =============================================
+# Este archivo contiene todas las dependencias necesarias para ejecutar
+# el sistema de aprendizaje Flask.
+#
+# INSTALACIÓN:
+# pip install -r requirements.txt
+#
+# CONCEPTO: requirements.txt es la forma estándar de definir dependencias
+# en proyectos Python, permitiendo recrear el mismo ambiente en cualquier máquina.
+
+# Framework principal
+Flask==3.0.0
+# CONCEPTO: Flask es el microframework web que usamos como base del sistema
+
+# Base de datos (incluida en Python, pero especificamos para claridad)
+# SQLite3 viene incluido con Python estándar
+
+# Utilidades adicionales para Flask
+Werkzeug==3.0.1
+# CONCEPTO: Werkzeug es la biblioteca WSGI que Flask usa internamente
+
+# Jinja2 para templates (incluido con Flask)
+Jinja2==3.1.2
+# CONCEPTO: Motor de templates que permite generar HTML dinámico
+
+# Manejo de fechas y tiempo (incluido en Python estándar)
+# datetime viene incluido con Python
+
+# Functools para decoradores (incluido en Python estándar)
+# functools viene incluido con Python
+
+# Hashlib para hash de contraseñas (incluido en Python estándar)
+# hashlib viene incluido con Python
+
+# JSON para APIs (incluido en Python estándar)
+# json viene incluido con Python
+
+# OS para manejo de archivos (incluido en Python estándar)
+# os viene incluido con Python
+
+# =============================================
+# DEPENDENCIAS OPCIONALES PARA DESARROLLO
+# =============================================
+
+# Para desarrollo y debugging (opcional)
+python-dotenv==1.0.0
+# CONCEPTO: Permite cargar variables de entorno desde archivos .env
+
+# Para testing (opcional)
+pytest==7.4.3
+# CONCEPTO: Framework de testing para Python
+
+pytest-flask==1.3.0
+# CONCEPTO: Extensiones de pytest específicas para Flask
+
+# Para formateo de código (opcional)
+black==23.11.0
+# CONCEPTO: Formateador automático de código Python
+
+# Para análisis de código (opcional)
+flake8==6.1.0
+# CONCEPTO: Herramienta para verificar estilo y errores en código Python
+
+# =============================================
+# DEPENDENCIAS DE PRODUCCIÓN (OPCIONALES)
+# =============================================
+
+# Para servidor de producción (opcional)
+gunicorn==21.2.0
+# CONCEPTO: Servidor WSGI para desplegar Flask en producción
+
+# Para CORS si necesitas API externa (opcional)
+Flask-CORS==4.0.0
+# CONCEPTO: Manejo de Cross-Origin Resource Sharing para APIs
+
+# Para rate limiting (opcional)
+Flask-Limiter==3.5.0
+# CONCEPTO: Control de límites de requests para proteger la aplicación
+
+# =============================================
+# NOTAS DE INSTALACIÓN
+# =============================================
+
+# MÍNIMA INSTALACIÓN (solo Flask):
+# pip install Flask==3.0.0
+
+# INSTALACIÓN COMPLETA (incluye herramientas de desarrollo):
+# pip install -r requirements.txt
+
+# VERIFICAR INSTALACIÓN:
+# python -c "import flask; print(flask.__version__)"
+
+# =============================================
+# VERSIONES DE PYTHON SOPORTADAS
+# =============================================
+# Python 3.8+
+# Python 3.9+ (recomendado)
+# Python 3.10+
+# Python 3.11+
+
+# =============================================
+# ESTRUCTURA RECOMENDADA DEL ENTORNO VIRTUAL
+# =============================================
+
+# 1. Crear entorno virtual:
+#    python -m venv flask_learning_env
+
+# 2. Activar entorno virtual:
+#    # Windows:
+#    flask_learning_env\Scripts\activate
+#    # macOS/Linux:
+#    source flask_learning_env/bin/activate
+
+# 3. Instalar dependencias:
+#    pip install -r requirements.txt
+
+# 4. Ejecutar aplicación:
+#    python app.py
+
+# =============================================
+# COMANDOS ÚTILES PARA DESARROLLO
+# =============================================
+
+# Ver dependencias instaladas:
+# pip list
+
+# Generar requirements.txt actualizado:
+# pip freeze > requirements.txt
+
+# Verificar dependencias desactualizadas:
+# pip list --outdated
+
+# Actualizar todas las dependencias:
+# pip install --upgrade -r requirements.txt
+
+# =============================================
+# NOTAS SOBRE SEGURIDAD
+# =============================================
+
+# IMPORTANTE: En producción, siempre:
+# 1. Usa variables de entorno para claves secretas
+# 2. Actualiza dependencias regularmente
+# 3. Usa HTTPS
+# 4. Configura un firewall apropiado
+# 5. Usa un servidor web como Nginx como proxy reverso
+
+# Verificar vulnerabilidades conocidas:
+# pip install safety
+# safety check
+
+# =============================================
+# TROUBLESHOOTING COMÚN
+# =============================================
+
+# Si tienes problemas con la instalación:
+# 1. Asegúrate de tener Python 3.8+ instalado
+# 2. Actualiza pip: python -m pip install --upgrade pip
+# 3. Usa entorno virtual para evitar conflictos
+# 4. En Windows, puede que necesites Visual C++ Build Tools
+# 5. En macOS, puede que necesites Xcode Command Line Tools
+
+# Error común: "No module named flask"
+# Solución: Asegúrate de tener activado el entorno virtual correcto
+
+# Error común: "Port already in use"
+# Solución: Cambia el puerto en app.py o mata el proceso existente
