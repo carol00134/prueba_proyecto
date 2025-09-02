@@ -58,13 +58,17 @@ def login():
 @app.route('/usuarios', methods=['GET', 'POST'])
 def usuarios():
     cur = mysql.connection.cursor()
+    usuario_editar = None
     if request.method == 'POST':
         accion = request.form.get('accion')
         username = request.form.get('username')
         password = request.form.get('password')
         rol = request.form.get('rol')
         if accion == 'agregar':
-            hashed_password = generate_password_hash(password)
+            if password:
+                hashed_password = generate_password_hash(password)
+            else:
+                hashed_password = generate_password_hash('')
             cur.execute("INSERT INTO usuarios (usuario, contrasena, rol) VALUES (%s, %s, %s)", (username, hashed_password, rol))
             mysql.connection.commit()
         elif accion == 'editar':
@@ -74,10 +78,13 @@ def usuarios():
         elif accion == 'eliminar':
             cur.execute("DELETE FROM usuarios WHERE usuario = %s", (username,))
             mysql.connection.commit()
+        elif accion == 'mostrar_editar' or accion == 'agregar':
+            cur.execute("SELECT usuario, rol FROM usuarios WHERE usuario = %s", (username,))
+            usuario_editar = cur.fetchone()
     cur.execute("SELECT usuario, rol FROM usuarios")
     usuarios = cur.fetchall()
     cur.close()
-    return render_template('usuarios.html', usuarios=usuarios)
+    return render_template('usuarios.html', usuarios=usuarios, usuario_editar=usuario_editar)
 
 
 @app.route('/mapas')
