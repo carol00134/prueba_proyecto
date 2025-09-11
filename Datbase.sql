@@ -101,3 +101,18 @@ CREATE TABLE ticket_unidad (
     FOREIGN KEY (ticket_id) REFERENCES tickets(id),
     FOREIGN KEY (unidad_id) REFERENCES unidades(id)
 );
+
+-- Módulos del sistema
+CREATE TABLE modulos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL
+);
+
+-- Permisos de acceso: qué rol puede acceder a qué módulo
+CREATE TABLE acceso_modulo (
+    rol_id INT NOT NULL,
+    modulo_id INT NOT NULL,
+    PRIMARY KEY (rol_id, modulo_id),
+    FOREIGN KEY (rol_id) REFERENCES roles(id),
+    FOREIGN KEY (modulo_id) REFERENCES modulos(id)
+);
