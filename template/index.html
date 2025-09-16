@@ -1,92 +1,212 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
-  <!-- Bootstrap CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Font Awesome for icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
-    <div class="d-flex"><nav id="sidebar" class="bg-gradient"
+{% block title %}Dashboard - Sistema de Gestión{% endblock %}
 
-    style="width: 250px; min-height: 100vh; background: linear-gradient(180deg, #6366f1 0%, #4338ca 100%); box-shadow: 2px 0 8px rgba(0,0,0,0.08);"><div class="sidebar-header text-center py-4"><a class="navbar-brand fw-bold text-white" href="{{ url_for('home') }}"><i class="fa-solid fa-fire-flame-curved me-2"></i>Mapa de Calor</a></div>< !DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Mapa de Calor</title><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"><style>body {
-      background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%);
-      min-height: 100vh;
-    }
+{% block back_button %}
+<!-- Sin botón de regresar en el dashboard -->
+{% endblock %}
 
-    #sidebar {
-      width: 250px;
-      min-height: 100vh;
-      background: linear-gradient(180deg, #6366f1 0%, #4338ca 100%);
-      box-shadow: 2px 0 8px rgba(0, 0, 0, 0.08);
-      position: fixed;
-      left: 0;
-      top: 0;
-      z-index: 1000;
-    }
+{% block content %}
+<style>
+.dashboard-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  margin-bottom: 2rem;
+  border: none;
+}
 
-    .sidebar-header {
-      text-align: center;
-      padding: 2rem 0;
-    }
+.stat-icon {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
 
-    .nav-link {
-      color: #fff !important;
-      font-weight: 500;
-      letter-spacing: 1px;
-      border-radius: 6px;
-      margin-bottom: 8px;
-      transition: background 0.2s;
-    }
+.stat-number {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
 
-    .nav-link:hover,
-    .nav-link.active {
-      background: rgba(255, 255, 255, 0.15);
-    }
+.stat-label {
+  color: #6b7280;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
 
-    .main-content {
-      margin-left: 250px;
-      padding: 2rem;
-      background: #fff;
-      border-radius: 12px;
-      margin-top: 2rem;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-      min-height: 80vh;
-    }
+.status-indicator {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-right: 8px;
+}
 
-    @media (max-width: 768px) {
-      #sidebar {
-        width: 100%;
-        min-height: auto;
-        position: relative;
-      }
+.status-online {
+  background-color: #10b981;
+}
 
-      .main-content {
-        margin-left: 0;
-        margin-top: 0;
-      }
-    }
+.feature-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s, box-shadow 0.2s;
+  text-decoration: none;
+  color: inherit;
+  border: none;
+  height: 100%;
+}
 
+.feature-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  color: inherit;
+  text-decoration: none;
+}
 
-    .nav-link {
-      color: #fff !important;
-      font-weight: 500;
-      letter-spacing: 1px;
-      border-radius: 6px;
-      margin-bottom: 8px;
-      transition: background 0.2s;
-    }
+.feature-icon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  color: #6366f1;
+}
+</style>
 
-    .nav-link:hover,
-    .nav-link.active {
-      background: rgba(255, 255, 255, 0.15);
-    }
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-12">
+      <h1 class="mb-4">
+        <i class="fas fa-tachometer-alt me-2"></i>Dashboard del Sistema
+      </h1>
+    </div>
+  </div>
 
-    .main-content {
-      margin-left: 250px;
+  <!-- Estadísticas principales -->
+  <div class="row mb-4">
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="dashboard-card text-center">
+        <div class="stat-icon text-primary">
+          <i class="fas fa-users"></i>
+        </div>
+        <div class="stat-number text-primary">{{ usuarios_activos }}</div>
+        <div class="stat-label">Usuarios Activos</div>
+        <small class="text-muted">Actualizado hace menos de un minuto</small>
+      </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="dashboard-card text-center">
+        <div class="stat-icon text-info">
+          <i class="fas fa-ticket-alt"></i>
+        </div>
+        <div class="stat-number text-info">{{ tickets_nuevos }}</div>
+        <div class="stat-label">Total Tickets</div>
+        <small class="text-muted">Registrados en el sistema</small>
+      </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="dashboard-card text-center">
+        <div class="stat-icon text-success">
+          <i class="fas fa-circle"></i>
+        </div>
+        <div class="stat-label">Estado del Sistema</div>
+        <div class="mt-2">
+          <span class="status-indicator status-online"></span>
+          <span class="text-success">{{ estado_bd }}</span>
+        </div>
+        <small class="text-muted">Última actualización: {{ hora_actual.strftime('%H:%M:%S') if hora_actual else 'N/A' }}</small>
+      </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="dashboard-card text-center">
+        <div class="stat-icon text-warning">
+          <i class="fas fa-map-marker-alt"></i>
+        </div>
+        <div class="stat-number text-warning">{{ puntos_geograficos }}</div>
+        <div class="stat-label">Puntos Geográficos</div>
+        <small class="text-muted">Registrados en el sistema</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Módulos principales -->
+  <div class="row">
+    <div class="col-12">
+      <h3 class="mb-3">Módulos del Sistema</h3>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-lg-4 col-md-6 mb-3">
+      <a href="{{ url_for('mapas') }}" class="feature-card d-block">
+        <div class="text-center">
+          <div class="feature-icon">
+            <i class="fas fa-map"></i>
+          </div>
+          <h5>Mapas Interactivos</h5>
+          <p class="text-muted mb-2">Visualiza y gestiona puntos geográficos</p>
+          <small class="text-muted">Accede a mapas con filtros avanzados, mapas de calor y herramientas de análisis geográfico.</small>
+        </div>
+      </a>
+    </div>
+    
+    <div class="col-lg-4 col-md-6 mb-3">
+      <a href="{{ url_for('usuarios') }}" class="feature-card d-block">
+        <div class="text-center">
+          <div class="feature-icon">
+            <i class="fas fa-users-cog"></i>
+          </div>
+          <h5>Gestión de Usuarios</h5>
+          <p class="text-muted mb-2">Administra usuarios y permisos</p>
+          <small class="text-muted">Crear, editar y gestionar usuarios del sistema con diferentes niveles de acceso.</small>
+        </div>
+      </a>
+    </div>
+    
+    <div class="col-lg-4 col-md-6 mb-3">
+      <a href="{{ url_for('tickets') }}" class="feature-card d-block">
+        <div class="text-center">
+          <div class="feature-icon">
+            <i class="fas fa-file-alt"></i>
+          </div>
+          <h5>Crear Tickets</h5>
+          <p class="text-muted mb-2">Crea nuevos tickets y reportes</p>
+          <small class="text-muted">Registra incidencias, emergencias y solicitudes con información geográfica.</small>
+        </div>
+      </a>
+    </div>
+    
+    <div class="col-lg-4 col-md-6 mb-3">
+      <a href="{{ url_for('tickets') }}" class="feature-card d-block">
+        <div class="text-center">
+          <div class="feature-icon">
+            <i class="fas fa-list-alt"></i>
+          </div>
+          <h5>Lista de Tickets</h5>
+          <p class="text-muted mb-2">Visualiza y edita tickets existentes</p>
+          <small class="text-muted">Consulta, filtra, edita y elimina tickets del sistema con herramientas de búsqueda.</small>
+        </div>
+      </a>
+    </div>
+    
+    <div class="col-lg-4 col-md-6 mb-3">
+      <a href="{{ url_for('catalogos') }}" class="feature-card d-block">
+        <div class="text-center">
+          <div class="feature-icon">
+            <i class="fas fa-database"></i>
+          </div>
+          <h5>Catálogos</h5>
+          <p class="text-muted mb-2">Gestiona catálogos del sistema</p>
+          <small class="text-muted">Administra departamentos, municipios, tipologías, despachos y unidades.</small>
+        </div>
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}
       padding: 2rem;
       min-height: 100vh;
     }
@@ -199,8 +319,8 @@
             class="fa-solid fa-right-to-bracket me-2"></i>Login</a>
       </li>
       <li class="nav-item mb-2">
-        <a class="nav-link text-white" href="{{ url_for('formulario') }}"><i
-            class="fa-solid fa-id-card me-2"></i>Fichas</a>
+        <a class="nav-link text-white" href="{{ url_for('tickets') }}"><i
+            class="fa-solid fa-id-card me-2"></i>Tickets</a>
       </li>
       <li class="nav-item mb-2">
         <a class="nav-link text-white" href="{{ url_for('usuarios') }}"><i
@@ -259,7 +379,7 @@
           <div class="card-body d-flex flex-column align-items-center justify-content-center">
             <h5 class="card-title w-100 text-center"><i class="fa-solid fa-map me-2 text-primary"></i>Mapas Interactivos</h5>
             <p class="card-text">Visualiza y gestiona puntos geográficos<br><br>Accede a mapas con filtros avanzados, mapas de calor y herramientas de análisis geográfico.</p>
-            <a href="{{ url_for('mapas') }}" class="btn btn-primary">Abrir Mapas</a>
+            <a href="{{ url_for('mapas') }}" class="btn btn-primary btn-sm">Abrir Mapas</a>
           </div>
         </div>
       </div>
@@ -268,7 +388,7 @@
           <div class="card-body d-flex flex-column align-items-center justify-content-center">
             <h5 class="card-title w-100 text-center"><i class="fa-solid fa-users me-2 text-success"></i>Gestión de Usuarios</h5>
             <p class="card-text">Administra usuarios y permisos<br><br>Crear, editar y gestionar usuarios del sistema con diferentes niveles de acceso.</p>
-            <a href="{{ url_for('usuarios') }}" class="btn btn-success">Gestionar Usuarios</a>
+            <a href="{{ url_for('usuarios') }}" class="btn btn-success btn-sm">Gestionar Usuarios</a>
           </div>
         </div>
       </div>
@@ -277,7 +397,7 @@
           <div class="card-body d-flex flex-column align-items-center justify-content-center">
             <h5 class="card-title w-100 text-center"><i class="fa-solid fa-ticket-alt me-2 text-info"></i>Sistema de Tickets</h5>
             <p class="card-text">Gestiona solicitudes y reportes<br><br>Crea, asigna y da seguimiento a tickets del sistema de manera eficiente.</p>
-            <a href="{{ url_for('formulario') }}" class="btn btn-info text-white">Ver Tickets</a>
+            <a href="{{ url_for('tickets') }}" class="btn btn-info btn-sm text-white">Ver Tickets</a>
           </div>
         </div>
       </div>
@@ -289,7 +409,7 @@
           <div class="card-body d-flex flex-column align-items-center justify-content-center">
             <h5 class="card-title w-100 text-center"><i class="fa-solid fa-chart-bar me-2 text-warning"></i>Estadísticas</h5>
             <p class="card-text">Análisis y reportes del sistema<br><br>Visualiza métricas, gráficos y reportes detallados del sistema.</p>
-            <a href="#" class="btn btn-warning text-white">Ver Estadísticas</a>
+            <a href="#" class="btn btn-warning btn-sm text-white">Ver Estadísticas</a>
           </div>
         </div>
       </div>

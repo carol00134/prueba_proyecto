@@ -1,93 +1,287 @@
-<!DOCTYPE html>
-<html lang="es">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Usuarios</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='usuarios.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-</head>
+{% block title %}Gestión de Usuarios - Sistema{% endblock %}
 
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>Gestion de Usuarios</h1>
-        </div>
-        <form action="{{ url_for('usuarios') }}" method="post">
-            <div class="form-section">
-                <div>
-                    <label for="username">Usuario</label>
-                    <input type="text" id="username" name="username"
-                        value="{{ usuario_editar['usuario'] if usuario_editar is defined and usuario_editar else '' }}">
-                </div>
-                <div>
-                    <label for="password">Contraseña</label>
-                    <input type="password" id="password" name="password" value="">
-                </div>
-                <div>
-                    <label for="rol">Rol</label>
-                    <select id="rol" name="rol">
-                        <option value="">Selecciona un rol</option>
-                        <option value="admin"
-                            {% if usuario_editar is defined and usuario_editar and usuario_editar['rol'] == 'admin' %}selected{% endif %}>
-                            Administrador</option>
-                        <option value="operador"
-                            {% if usuario_editar is defined and usuario_editar and usuario_editar['rol'] == 'operador' %}selected{% endif %}>
-                            Operador</option>
-                        <option value="supervisor"
-                            {% if usuario_editar is defined and usuario_editar and usuario_editar['rol'] == 'supervisor' %}selected{% endif %}>
-                            Supervisor</option>
-                        <option value="invitado"
-                            {% if usuario_editar is defined and usuario_editar and usuario_editar['rol'] == 'invitado' %}selected{% endif %}>
-                            Invitado</option>
-                    </select>
-                </div>
-            </div>
-            <div class="buttons">
-                <button type="submit" name="accion" value="agregar" class="create-btn">
-                    <i class="fa fa-plus"></i> Agregar
-                </button>
-                <button type="submit" name="accion" value="editar" class="editar-btn">
-                    <i class="fa fa-edit"></i> Editar
-                </button>
-            </div>
-        </form>
-        <div class="container mt-4">
-            <h2 class="header">Usuarios Registrados</h2>
-            <table class="table-usuarios">
-                <thead>
-                    <tr>
-                        <th>Usuario</th>
-                        <th>Rol</th>
-                        <th class="acciones">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for u in usuarios %}
-                    <tr>
-                        <td>{{ u.usuario }}</td>
-                        <td>{{ u.rol if u.rol is defined else '' }}</td>
-                        <td class="acciones">
-                            <form action="{{ url_for('usuarios') }}" method="post">
-                                <input type="hidden" name="username" value="{{ u.usuario }}">
-                                <input type="hidden" name="rol" value="{{ u.rol }}">
-                                <input type="hidden" name="editar" value="1">
-                                <button type="submit" name="accion" value="mostrar_editar" class="editar-btn"
-                                    title="Editar"><i class="fa fa-edit"></i></button>
-                            </form>
-                            <form action="{{ url_for('usuarios') }}" method="post">
-                                <input type="hidden" name="username" value="{{ u.usuario }}">
-                                <button type="submit" name="accion" value="eliminar" class="eliminar-btn"
-                                    title="Eliminar"><i class="fa fa-trash"></i></button>
-                            </form>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+{% block page_title %}Gestión de Usuarios{% endblock %}
+
+{% block back_button %}
+<a href="/" class="btn-back">
+  <i class="fas fa-home me-1"></i>Inicio
+</a>
+{% endblock %}
+
+{% block content %}
+<style>
+.form-container {
+  background: #fff;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  margin-bottom: 2rem;
+}
+
+.form-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.form-control {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.btn-primary, .btn-warning {
+  background: linear-gradient(90deg, #6366f1 0%, #4338ca 100%);
+  border: none;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s;
+  margin-right: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.btn-warning {
+  background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%);
+}
+
+.btn-danger {
+  background: linear-gradient(90deg, #dc2626 0%, #b91c1c 100%);
+  border: none;
+  color: white;
+  padding: 0.375rem 0.75rem;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.btn-secondary {
+  background: #6b7280;
+  border: none;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+
+.btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.table-users {
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.table {
+  margin-bottom: 0;
+}
+
+.table th {
+  background: #f8fafc;
+  font-weight: 600;
+  color: #374151;
+  border: none;
+  padding: 1rem;
+}
+
+.table td {
+  padding: 1rem;
+  border-color: #f1f5f9;
+  vertical-align: middle;
+}
+
+.badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.badge-administrador { background: #ddd6fe; color: #5b21b6; }
+.badge-call-center { background: #dbeafe; color: #1d4ed8; }
+.badge-master { background: #d1fae5; color: #065f46; }
+
+.required {
+  color: #dc2626;
+}
+</style>
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-12">
+      <h1 class="mb-4">
+        <i class="fas fa-users-cog me-2"></i>Gestión de Usuarios
+      </h1>
     </div>
-</body>
+  </div>
 
-</html>
+  {% if error %}
+  <div class="alert alert-danger" role="alert">
+    <i class="fas fa-exclamation-circle me-2"></i>{{ error }}
+  </div>
+  {% endif %}
+
+  {% if success %}
+  <div class="alert alert-success" role="alert">
+    <i class="fas fa-check-circle me-2"></i>{{ success }}
+  </div>
+  {% endif %}
+
+  <!-- Formulario de usuarios -->
+  <div class="form-container">
+    <h3 class="mb-3">
+      {% if usuario_editar %}
+        <i class="fas fa-edit me-2"></i>Editar Usuario
+      {% else %}
+        <i class="fas fa-plus me-2"></i>Nuevo Usuario
+      {% endif %}
+    </h3>
+    
+    <form action="{{ url_for('usuarios') }}" method="post">
+      <div class="form-section">
+        <div class="form-group">
+          <label for="nombre">Nombre Completo <span class="required">*</span></label>
+          <input type="text" id="nombre" name="nombre" class="form-control" 
+                 value="{{ usuario_editar['nombre'] if usuario_editar else '' }}" 
+                 placeholder="Nombre completo del usuario" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="username">Usuario <span class="required">*</span></label>
+          <input type="text" id="username" name="username" class="form-control"
+                 value="{{ usuario_editar['usuario'] if usuario_editar else '' }}" 
+                 placeholder="Nombre de usuario único" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="password">Contraseña <span class="required">*</span></label>
+          <input type="password" id="password" name="password" class="form-control" 
+                 placeholder="{% if usuario_editar %}Dejar vacío para mantener la actual{% else %}Nueva contraseña{% endif %}"
+                 {% if not usuario_editar %}required{% endif %}>
+        </div>
+        
+        <div class="form-group">
+          <label for="rol">Rol <span class="required">*</span></label>
+          <select id="rol" name="rol" class="form-control" required>
+            <option value="">Selecciona un rol</option>
+            <option value="administrador" {% if usuario_editar and usuario_editar['rol'] == 'administrador' %}selected{% endif %}>
+              Administrador
+            </option>
+            <option value="call center" {% if usuario_editar and usuario_editar['rol'] == 'call center' %}selected{% endif %}>
+              Call Center
+            </option>
+            <option value="master" {% if usuario_editar and usuario_editar['rol'] == 'master' %}selected{% endif %}>
+              Master
+            </option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="text-center">
+        {% if usuario_editar %}
+          <button type="submit" name="accion" value="editar" class="btn btn-warning btn-sm" style="width: auto; display: inline-block;">
+            <i class="fas fa-save me-2"></i>Actualizar Usuario
+          </button>
+          <button type="submit" name="accion" value="cancelar" class="btn btn-secondary btn-sm" style="width: auto; display: inline-block;">
+            <i class="fas fa-times me-2"></i>Cancelar
+          </button>
+        {% else %}
+          <button type="submit" name="accion" value="agregar" class="btn btn-primary btn-sm" style="width: auto; display: inline-block; padding: 0.5rem 1.5rem;">
+            <i class="fas fa-plus me-2"></i>Agregar Usuario
+          </button>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+
+  <!-- Lista de usuarios -->
+  <div class="table-users">
+    <h3 class="p-3 mb-0 border-bottom">
+      <i class="fas fa-list me-2"></i>Usuarios Registrados
+    </h3>
+    
+    <div class="table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Usuario</th>
+            <th>Rol</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for usuario in usuarios %}
+          <tr>
+            <td>{{ usuario.nombre or 'Sin nombre' }}</td>
+            <td>{{ usuario.usuario }}</td>
+            <td>
+              {% if usuario.rol %}
+                <span class="badge badge-{{ usuario.rol|replace(' ', '-') }}">{{ usuario.rol|title }}</span>
+              {% else %}
+                <span class="badge bg-secondary">Sin rol</span>
+              {% endif %}
+            </td>
+            <td>
+              <span class="badge bg-success">Activo</span>
+            </td>
+            <td>
+              <form style="display: inline;" method="post" action="{{ url_for('usuarios') }}">
+                <input type="hidden" name="username" value="{{ usuario.usuario }}">
+                <button type="submit" name="accion" value="mostrar_editar" class="btn btn-warning btn-sm" style="width: auto; display: inline-block; padding: 0.375rem 0.75rem;">
+                  <i class="fas fa-edit"></i>
+                </button>
+              </form>
+              <form style="display: inline;" method="post" action="{{ url_for('usuarios') }}" 
+                    onsubmit="return confirm('¿Está seguro de eliminar este usuario?')">
+                <input type="hidden" name="username" value="{{ usuario.usuario }}">
+                <button type="submit" name="accion" value="eliminar" class="btn btn-danger btn-sm" style="width: auto; display: inline-block; padding: 0.375rem 0.75rem;">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,289 @@
+{% extends "base.html" %}
+
+{% block title %}Agregar Ticket - Sistema{% endblock %}
+
+{% block page_title %}Agregar Nuevo Ticket{% endblock %}
+
+{% block back_button %}
+<a href="/tickets" class="btn-back">
+  <i class="fas fa-arrow-left me-1"></i>Volver a Tickets
+</a>
+{% endblock %}
+
+{% block content %}
+<style>
+.form-container {
+  background: #fff;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  margin-bottom: 2rem;
+}
+
+.form-label {
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.5rem;
+}
+
+.form-control, .form-select {
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.btn {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.btn-primary { background: #3b82f6; color: white; }
+.btn-secondary { background: #6b7280; color: white; }
+.btn-success { background: #10b981; color: white; }
+
+.page-header {
+  display: flex;
+  justify-content: between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+</style>
+
+<div class="container-fluid px-4">
+  <div class="page-header">
+    <h2><i class="fas fa-plus-circle me-2"></i>Agregar Nuevo Ticket</h2>
+    <p class="text-muted mb-0">Complete la información para crear un nuevo ticket</p>
+  </div>
+
+  <div class="form-container">
+    <form action="/tickets" method="POST" id="ticketForm">
+      <input type="hidden" name="ticket_id" value="0" id="ticket_id">
+      
+      <div class="row">
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="fecha" class="form-label">Fecha *</label>
+            <input type="date" class="form-control" id="fecha" name="fecha" required>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="id_usuario" class="form-label">Usuario *</label>
+            <select class="form-select" id="id_usuario" name="id_usuario" required>
+              <option value="">Seleccione un usuario</option>
+              {% for usuario in usuarios %}
+              <option value="{{ usuario.id }}">{{ usuario.nombre }} ({{ usuario.usuario }})</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="id_departamento" class="form-label">Departamento *</label>
+            <select class="form-select" id="id_departamento" name="id_departamento" required>
+              <option value="">Seleccione un departamento</option>
+              {% for depto in departamentos %}
+              <option value="{{ depto.id }}">{{ depto.nombre }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="id_municipio" class="form-label">Municipio *</label>
+            <select class="form-select" id="id_municipio" name="id_municipio" required>
+              <option value="">Seleccione un municipio</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="id_tipologia" class="form-label">Tipología *</label>
+            <select class="form-select" id="id_tipologia" name="id_tipologia" required>
+              <option value="">Seleccione una tipología</option>
+              {% for tipo in tipologias %}
+              <option value="{{ tipo.id }}">{{ tipo.nombre }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="id_subtipologia" class="form-label">Subtipología</label>
+            <select class="form-select" id="id_subtipologia" name="id_subtipologia">
+              <option value="">Seleccione una subtipología</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="latitud" class="form-label">Latitud *</label>
+            <input type="number" step="any" class="form-control" id="latitud" name="latitud" placeholder="Ej: 4.123456" required>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="longitud" class="form-label">Longitud *</label>
+            <input type="number" step="any" class="form-control" id="longitud" name="longitud" placeholder="Ej: -73.123456" required>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-12">
+          <div class="mb-3">
+            <label for="descripcion" class="form-label">Descripción *</label>
+            <textarea class="form-control" id="descripcion" name="descripcion" rows="3" placeholder="Descripción detallada del ticket..." required></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="nota_respaldo" class="form-label">Nota de Respaldo</label>
+            <textarea class="form-control" id="nota_respaldo" name="nota_respaldo" rows="2" placeholder="Información adicional..."></textarea>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="id_mando" class="form-label">Mando</label>
+            <input type="text" class="form-control" id="id_mando" name="id_mando" placeholder="Nombre del mando">
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="registro" class="form-label">Registro</label>
+            <input type="text" class="form-control" id="registro" name="registro" placeholder="Número de registro">
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="nota_final" class="form-label">Nota Final</label>
+            <textarea class="form-control" id="nota_final" name="nota_final" rows="2" placeholder="Observaciones finales..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="agentes" class="form-label">Agentes</label>
+            <select class="form-select" id="agentes" name="agentes" multiple size="4">
+              {% for agente in agentes %}
+              <option value="{{ agente.id }}">{{ agente.nombre }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label for="unidades" class="form-label">Unidades</label>
+            <select class="form-select" id="unidades" name="unidades" multiple size="4">
+              {% for unidad in unidades %}
+              <option value="{{ unidad.id }}">{{ unidad.nombre }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="text-center mt-4">
+        <button type="submit" class="btn btn-success btn-sm me-2">
+          <i class="fas fa-save me-1"></i>Crear Ticket
+        </button>
+        <a href="/tickets" class="btn btn-secondary btn-sm">
+          <i class="fas fa-times me-1"></i>Cancelar
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+// Cargar municipios según departamento
+document.getElementById('id_departamento').addEventListener('change', function() {
+    const departamentoId = this.value;
+    const municipioSelect = document.getElementById('id_municipio');
+    
+    municipioSelect.innerHTML = '<option value="">Seleccione un municipio</option>';
+    
+    if (departamentoId) {
+        fetch(`/api/municipios/${departamentoId}`)
+            .then(response => response.json())
+            .then(data => {
+                data.forEach(municipio => {
+                    const option = document.createElement('option');
+                    option.value = municipio.id;
+                    option.textContent = municipio.nombre;
+                    municipioSelect.appendChild(option);
+                });
+            })
+            .catch(error => {
+                console.error('Error cargando municipios:', error);
+            });
+    }
+});
+
+// Cargar subtipologías según tipología
+document.getElementById('id_tipologia').addEventListener('change', function() {
+    const tipologiaId = this.value;
+    const subtipologiaSelect = document.getElementById('id_subtipologia');
+    
+    subtipologiaSelect.innerHTML = '<option value="">Seleccione una subtipología</option>';
+    
+    if (tipologiaId) {
+        fetch(`/api/subtipologias/${tipologiaId}`)
+            .then(response => response.json())
+            .then(data => {
+                data.forEach(subtipologia => {
+                    const option = document.createElement('option');
+                    option.value = subtipologia.id;
+                    option.textContent = subtipologia.nombre;
+                    subtipologiaSelect.appendChild(option);
+                });
+            })
+            .catch(error => {
+                console.error('Error cargando subtipologías:', error);
+            });
+    }
+});
+
+// Establecer fecha actual por defecto
+document.addEventListener('DOMContentLoaded', function() {
+    const fechaInput = document.getElementById('fecha');
+    const today = new Date().toISOString().split('T')[0];
+    fechaInput.value = today;
+});
+</script>
+{% endblock %}

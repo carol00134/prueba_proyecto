@@ -1,0 +1,570 @@
+{% extends "base.html" %}
+
+{% block title %}Gestión de Tickets - Sistema{% endblock %}
+
+{% block content %}
+<style>
+.ticket-container {
+  background: #fff;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  margin-bottom: 2rem;
+}
+
+.form-container {
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  border: 1px solid #e5e7eb;
+}
+
+.form-label {
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.5rem;
+}
+
+.form-control, .form-select {
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.btn {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.btn-group .btn {
+  margin: 0;
+}
+
+.btn-outline-warning {
+  color: #f59e0b;
+  border: 1px solid #f59e0b;
+  background: white;
+}
+
+.btn-outline-warning:hover {
+  background: #f59e0b;
+  color: white;
+}
+
+.btn-outline-danger {
+  color: #dc2626;
+  border: 1px solid #dc2626;
+  background: white;
+}
+
+.btn-outline-danger:hover {
+  background: #dc2626;
+  color: white;
+}
+
+.btn-primary { background: #3b82f6; color: white; }
+.btn-secondary { background: #6b7280; color: white; }
+.btn-warning { background: #f59e0b; color: white; }
+.btn-danger { background: #dc2626; color: white; }
+.btn-success { background: #10b981; color: white; }
+
+.table th:last-child,
+.table td:last-child {
+  width: 120px;
+  text-align: center;
+}
+
+.btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  margin-right: 0.25rem;
+}
+
+.table-container {
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.table th {
+  background: #f8fafc;
+  font-weight: 600;
+  color: #374151;
+  border: none;
+  padding: 1rem;
+  font-size: 0.875rem;
+}
+
+.table td {
+  padding: 0.75rem;
+  border-color: #f1f5f9;
+  vertical-align: middle;
+  font-size: 0.875rem;
+}
+
+.coordinates {
+  font-family: monospace;
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.edit-row {
+  background-color: #fef3c7 !important;
+}
+</style>
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-12">
+      <h1 class="mb-4">
+        <i class="fas fa-ticket-alt me-2"></i>Gestión de Tickets
+      </h1>
+    </div>
+  </div>
+
+  {% if error %}
+  <div class="alert alert-danger" role="alert">
+    <i class="fas fa-exclamation-circle me-2"></i>{{ error }}
+  </div>
+  {% endif %}
+
+  {% if success %}
+  <div class="alert alert-success" role="alert">
+    <i class="fas fa-check-circle me-2"></i>{{ success }}
+  </div>
+  {% endif %}
+
+  <!-- Formulario de ticket -->
+  <div class="ticket-container">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h5 id="form-title">Crear Nuevo Ticket</h5>
+      <button type="button" class="btn btn-secondary btn-sm" onclick="limpiarFormulario()">
+        <i class="fas fa-plus me-2"></i>Nuevo Ticket
+      </button>
+    </div>
+    
+    <form method="POST" action="{{ url_for('tickets') }}" id="ticketForm">
+      <input type="hidden" id="ticket_id" name="ticket_id" value="0">
+      
+      <div class="form-container">
+        <h6 class="mb-3">Información Básica</h6>
+        
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <label for="fecha" class="form-label">Fecha y Hora <span class="text-danger">*</span></label>
+            <input type="datetime-local" class="form-control" id="fecha" name="fecha" required>
+          </div>
+          <div class="col-md-6">
+            <label for="id_usuario" class="form-label">Usuario <span class="text-danger">*</span></label>
+            <select class="form-select" id="id_usuario" name="id_usuario" required>
+              <option value="">Seleccione un usuario</option>
+              {% for usuario in usuarios %}
+              <option value="{{ usuario.id }}">{{ usuario.nombre }} ({{ usuario.usuario }})</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-container">
+        <h6 class="mb-3">Ubicación</h6>
+        
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <label for="id_departamento" class="form-label">Departamento <span class="text-danger">*</span></label>
+            <select class="form-select" id="id_departamento" name="id_departamento" required>
+              <option value="">Seleccione un departamento</option>
+              {% for depto in departamentos %}
+              <option value="{{ depto.id }}">{{ depto.nombre }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label for="id_municipio" class="form-label">Municipio <span class="text-danger">*</span></label>
+            <select class="form-select" id="id_municipio" name="id_municipio" required>
+              <option value="">Seleccione un municipio</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <label for="latitud" class="form-label">Latitud</label>
+            <input type="number" class="form-control" id="latitud" name="latitud" step="any" placeholder="4.6097100">
+          </div>
+          <div class="col-md-6">
+            <label for="longitud" class="form-label">Longitud</label>
+            <input type="number" class="form-control" id="longitud" name="longitud" step="any" placeholder="-74.0817500">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-container">
+        <h6 class="mb-3">Clasificación</h6>
+        
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <label for="id_tipologia" class="form-label">Tipología <span class="text-danger">*</span></label>
+            <select class="form-select" id="id_tipologia" name="id_tipologia" required>
+              <option value="">Seleccione una tipología</option>
+              {% for tipo in tipologias %}
+              <option value="{{ tipo.id }}">{{ tipo.nombre }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label for="id_subtipologia" class="form-label">Subtipología</label>
+            <select class="form-select" id="id_subtipologia" name="id_subtipologia">
+              <option value="">Seleccione una subtipología</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-container">
+        <h6 class="mb-3">Detalles</h6>
+        
+        <div class="mb-3">
+          <label for="descripcion" class="form-label">Descripción</label>
+          <textarea class="form-control" id="descripcion" name="descripcion" rows="3"></textarea>
+        </div>
+
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <label for="nota_respaldo" class="form-label">Nota de Respaldo</label>
+            <textarea class="form-control" id="nota_respaldo" name="nota_respaldo" rows="2"></textarea>
+          </div>
+          <div class="col-md-6">
+            <label for="id_mando" class="form-label">Mando</label>
+            <input type="text" class="form-control" id="id_mando" name="id_mando" placeholder="Nombre del mando">
+          </div>
+        </div>
+
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <label for="registro" class="form-label">Registro</label>
+            <textarea class="form-control" id="registro" name="registro" rows="2"></textarea>
+          </div>
+          <div class="col-md-6">
+            <label for="nota_final" class="form-label">Nota Final</label>
+            <textarea class="form-control" id="nota_final" name="nota_final" rows="2"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-container">
+        <h6 class="mb-3">Asignaciones</h6>
+        
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <label for="despachos" class="form-label">Despachos</label>
+            <select class="form-select" id="despachos" name="despachos" multiple size="4">
+              {% for despacho in despachos %}
+              <option value="{{ despacho.id }}">{{ despacho.nombre }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label for="unidades" class="form-label">Unidades</label>
+            <select class="form-select" id="unidades" name="unidades" multiple size="4">
+              {% for unidad in unidades %}
+              <option value="{{ unidad.id }}">{{ unidad.nombre }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="text-center">
+        <button type="submit" class="btn btn-primary btn-sm me-2" id="submit-btn">
+          <i class="fas fa-save me-1"></i>Crear Ticket
+        </button>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="limpiarFormulario()">
+          <i class="fas fa-times me-1"></i>Cancelar
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Lista de tickets -->
+  <div class="ticket-container">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h5 class="mb-0">Lista de Tickets</h5>
+      <a href="/agregar_ticket" class="btn btn-primary btn-sm">
+        <i class="fas fa-plus me-1"></i>Agregar Ticket
+      </a>
+    </div>
+    
+    <!-- Filtros -->
+    <div class="row mb-3">
+      <div class="col-md-3">
+        <select class="form-select" id="filtro_departamento" onchange="filtrarTickets()">
+          <option value="">Todos los departamentos</option>
+          {% for depto in departamentos %}
+          <option value="{{ depto.id }}">{{ depto.nombre }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <select class="form-select" id="filtro_tipologia" onchange="filtrarTickets()">
+          <option value="">Todas las tipologías</option>
+          {% for tipo in tipologias %}
+          <option value="{{ tipo.id }}">{{ tipo.nombre }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <input type="date" class="form-control" id="filtro_fecha" onchange="filtrarTickets()">
+      </div>
+      <div class="col-md-3">
+        <button class="btn btn-secondary btn-sm" onclick="limpiarFiltros()">
+          <i class="fas fa-refresh"></i> Limpiar
+        </button>
+      </div>
+    </div>
+    
+    <div class="table-container">
+      <div class="table-responsive">
+        <table class="table" id="ticketsTable">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Fecha</th>
+              <th>Departamento</th>
+              <th>Municipio</th>
+              <th>Tipología</th>
+              <th>Coordenadas</th>
+              <th>Usuario</th>
+              <th>Rol</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for ticket in tickets %}
+            <tr id="ticket-row-{{ ticket.id }}">
+              <td><strong>#{{ ticket.id }}</strong></td>
+              <td>{{ ticket.fecha.strftime('%d/%m/%Y %H:%M') if ticket.fecha else 'N/A' }}</td>
+              <td>{{ ticket.departamento_nombre }}</td>
+              <td>{{ ticket.municipio_nombre }}</td>
+              <td>{{ ticket.tipologia_nombre }}</td>
+              <td class="coordinates">
+                {% if ticket.latitud and ticket.longitud %}
+                  {{ "%.6f"|format(ticket.latitud) }},<br>{{ "%.6f"|format(ticket.longitud) }}
+                {% else %}
+                  N/A
+                {% endif %}
+              </td>
+              <td>{{ ticket.usuario_nombre or 'N/A' }}</td>
+              <td>{{ ticket.usuario_rol or 'N/A' }}</td>
+              <td>
+                <div class="btn-group" role="group">
+                  <button class="btn btn-outline-warning btn-sm" onclick="editarTicket('{{ ticket.id }}')" title="Editar">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="btn btn-outline-danger btn-sm" onclick="eliminarTicket('{{ ticket.id }}')" title="Eliminar">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      
+      {% if not tickets %}
+      <div class="text-center p-4">
+        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+        <p class="text-muted">No hay tickets registrados.</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<script>
+// Cargar municipios según departamento
+document.getElementById('id_departamento').addEventListener('change', function() {
+    const departamentoId = this.value;
+    const municipioSelect = document.getElementById('id_municipio');
+    
+    municipioSelect.innerHTML = '<option value="">Seleccione un municipio</option>';
+    
+    if (departamentoId) {
+        fetch(`/api/municipios/${departamentoId}`)
+            .then(response => response.json())
+            .then(data => {
+                data.forEach(municipio => {
+                    const option = document.createElement('option');
+                    option.value = municipio.id;
+                    option.textContent = municipio.nombre;
+                    municipioSelect.appendChild(option);
+                });
+            });
+    }
+});
+
+// Cargar subtipologías según tipología
+document.getElementById('id_tipologia').addEventListener('change', function() {
+    const tipologiaId = this.value;
+    const subtipologiaSelect = document.getElementById('id_subtipologia');
+    
+    subtipologiaSelect.innerHTML = '<option value="">Seleccione una subtipología</option>';
+    
+    if (tipologiaId) {
+        fetch(`/api/subtipologias/${tipologiaId}`)
+            .then(response => response.json())
+            .then(data => {
+                data.forEach(subtipologia => {
+                    const option = document.createElement('option');
+                    option.value = subtipologia.id;
+                    option.textContent = subtipologia.nombre;
+                    subtipologiaSelect.appendChild(option);
+                });
+            });
+    }
+});
+
+// Editar ticket
+function editarTicket(ticketId) {
+    fetch(`/api/ticket/${ticketId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const ticket = data.ticket_data;
+                
+                // Actualizar título y botón
+                document.getElementById('form-title').textContent = `Editar Ticket #${ticketId}`;
+                document.getElementById('submit-btn').innerHTML = '<i class="fas fa-save me-1"></i>Actualizar Ticket';
+                
+                // Llenar formulario
+                document.getElementById('ticket_id').value = ticketId;
+                if (ticket.fecha) document.getElementById('fecha').value = ticket.fecha;
+                if (ticket.id_usuario) document.getElementById('id_usuario').value = ticket.id_usuario;
+                if (ticket.id_departamento) document.getElementById('id_departamento').value = ticket.id_departamento;
+                if (ticket.id_tipologia) document.getElementById('id_tipologia').value = ticket.id_tipologia;
+                if (ticket.latitud) document.getElementById('latitud').value = ticket.latitud;
+                if (ticket.longitud) document.getElementById('longitud').value = ticket.longitud;
+                if (ticket.descripcion) document.getElementById('descripcion').value = ticket.descripcion;
+                if (ticket.nota_respaldo) document.getElementById('nota_respaldo').value = ticket.nota_respaldo;
+                if (ticket.id_mando) document.getElementById('id_mando').value = ticket.id_mando;
+                if (ticket.registro) document.getElementById('registro').value = ticket.registro;
+                if (ticket.nota_final) document.getElementById('nota_final').value = ticket.nota_final;
+                
+                // Cargar municipios y subtipologías
+                if (ticket.id_departamento) {
+                    fetch(`/api/municipios/${ticket.id_departamento}`)
+                        .then(response => response.json())
+                        .then(municipios => {
+                            const municipioSelect = document.getElementById('id_municipio');
+                            municipioSelect.innerHTML = '<option value="">Seleccione un municipio</option>';
+                            municipios.forEach(municipio => {
+                                const option = document.createElement('option');
+                                option.value = municipio.id;
+                                option.textContent = municipio.nombre;
+                                if (municipio.id == ticket.id_municipio) option.selected = true;
+                                municipioSelect.appendChild(option);
+                            });
+                        });
+                }
+                
+                if (ticket.id_tipologia) {
+                    fetch(`/api/subtipologias/${ticket.id_tipologia}`)
+                        .then(response => response.json())
+                        .then(subtipologias => {
+                            const subtipologiaSelect = document.getElementById('id_subtipologia');
+                            subtipologiaSelect.innerHTML = '<option value="">Seleccione una subtipología</option>';
+                            subtipologias.forEach(subtipologia => {
+                                const option = document.createElement('option');
+                                option.value = subtipologia.id;
+                                option.textContent = subtipologia.nombre;
+                                if (subtipologia.id == ticket.id_subtipologia) option.selected = true;
+                                subtipologiaSelect.appendChild(option);
+                            });
+                        });
+                }
+                
+                // Resaltar fila
+                document.querySelectorAll('tr').forEach(row => row.classList.remove('edit-row'));
+                document.getElementById(`ticket-row-${ticketId}`).classList.add('edit-row');
+                
+                // Scroll al formulario
+                document.querySelector('.ticket-container').scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+}
+
+// Eliminar ticket
+function eliminarTicket(ticketId) {
+    if (confirm('¿Está seguro de eliminar este ticket?')) {
+        const formData = new FormData();
+        formData.append('action', 'delete');
+        formData.append('ticket_id', ticketId);
+        
+        fetch('{{ url_for("tickets") }}', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error al eliminar el ticket');
+            }
+        });
+    }
+}
+
+// Mostrar formulario para agregar ticket
+function mostrarFormulario() {
+    // Limpiar el formulario
+    limpiarFormulario();
+    
+    // Hacer scroll hasta el formulario
+    document.querySelector('.form-container').scrollIntoView({
+        behavior: 'smooth'
+    });
+    
+    // Enfocar el primer campo
+    document.getElementById('fecha').focus();
+}
+
+// Limpiar formulario
+function limpiarFormulario() {
+    document.getElementById('ticketForm').reset();
+    document.getElementById('ticket_id').value = '0';
+    document.getElementById('form-title').textContent = 'Crear Nuevo Ticket';
+    document.getElementById('submit-btn').innerHTML = '<i class="fas fa-save me-1"></i>Crear Ticket';
+    document.querySelectorAll('tr').forEach(row => row.classList.remove('edit-row'));
+    document.getElementById('id_municipio').innerHTML = '<option value="">Seleccione un municipio</option>';
+    document.getElementById('id_subtipologia').innerHTML = '<option value="">Seleccione una subtipología</option>';
+}
+
+// Filtrar tickets (función básica)
+function filtrarTickets() {
+    // Implementar filtrado del lado cliente o recargar con parámetros
+    console.log('Filtrar tickets');
+}
+
+function limpiarFiltros() {
+    document.getElementById('filtro_departamento').value = '';
+    document.getElementById('filtro_tipologia').value = '';
+    document.getElementById('filtro_fecha').value = '';
+    filtrarTickets();
+}
+</script>
+{% endblock %}
