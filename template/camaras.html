@@ -1,0 +1,575 @@
+{% extends "base.html" %}
+
+{% block title %}Gestión de Cámaras - Sistema{% endblock %}
+
+{% block page_title %}Gestión de Cámaras{% endblock %}
+
+{% block back_button %}
+<a href="/" class="btn-back">
+  <i class="fas fa-home me-1"></i>Inicio
+</a>
+{% endblock %}
+
+{% block content %}
+<style>
+.form-container {
+  background: #fff;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  margin-bottom: 2rem;
+}
+
+.form-inline {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-end;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.form-group {
+  flex: 0 0 250px;
+}
+
+.form-group label {
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.form-control {
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 0.75rem;
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+.form-control:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  outline: none;
+}
+
+.btn-primary {
+  background: linear-gradient(90deg, #6366f1 0%, #8b5cf6 100%);
+  border: none;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.btn-success {
+  background: linear-gradient(90deg, #059669 0%, #047857 100%);
+  border: none;
+  color: white;
+  padding: 0.375rem 0.75rem;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.btn-warning {
+  background: linear-gradient(90deg, #d97706 0%, #b45309 100%);
+  border: none;
+  color: white;
+  padding: 0.375rem 0.75rem;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.btn-danger {
+  background: linear-gradient(90deg, #dc2626 0%, #b91c1c 100%);
+  border: none;
+  color: white;
+  padding: 0.375rem 0.75rem;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.table-container {
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.table {
+  margin-bottom: 0;
+}
+
+.table th {
+  background: #f8fafc;
+  font-weight: 600;
+  color: #374151;
+  border: none;
+  padding: 1rem;
+}
+
+.table td {
+  padding: 1rem;
+  border-color: #f1f5f9;
+  vertical-align: middle;
+}
+
+.required {
+  color: #dc2626;
+}
+
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.status-active {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status-inactive {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.status-maintenance {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.alert {
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.alert-success {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.alert-error {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.badge {
+  padding: 0.4rem 0.8rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.bg-info {
+  background: #3b82f6 !important;
+  color: white;
+}
+
+.bg-secondary {
+  background: #6b7280 !important;
+  color: white;
+}
+</style>
+
+<div class="container-fluid">
+  {% if success %}
+    <div class="alert alert-success">
+      <i class="fas fa-check-circle me-2"></i>{{ success }}
+    </div>
+  {% endif %}
+
+  {% if error %}
+    <div class="alert alert-error">
+      <i class="fas fa-exclamation-circle me-2"></i>{{ error }}
+    </div>
+  {% endif %}
+
+  <!-- Formulario para agregar nueva cámara -->
+  <div class="camera-container">
+    <h4 class="mb-4">
+      <i class="fas fa-video me-2"></i>Registrar Nueva Cámara
+    </h4>
+    
+    <form method="POST" action="{{ url_for('camaras_routes.camaras') }}">
+      <input type="hidden" name="accion" value="agregar">
+      
+      <div class="row">
+        <div class="col-md-4">
+          <div class="form-group">
+            <label for="id_camaras">ID Cámara <span class="required">*</span></label>
+            <input type="text" class="form-control" name="id_camaras" id="id_camaras" 
+                   required placeholder="Ej: CAM001, CAM-2024-001">
+          </div>
+        </div>
+        
+        <div class="col-md-4">
+          <div class="form-group">
+            <label for="correo">Correo Electrónico <span class="required">*</span></label>
+            <input type="email" class="form-control" name="correo" id="correo" 
+                   required placeholder="usuario@ejemplo.com">
+          </div>
+        </div>
+        
+        <div class="col-md-4">
+          <div class="form-group">
+            <label for="nombre">Nombre <span class="required">*</span></label>
+            <input type="text" class="form-control" name="nombre" id="nombre" 
+                   required placeholder="Nombre completo">
+          </div>
+        </div>
+      </div>
+
+      <div class="row mt-3">
+        <div class="col-md-4">
+          <div class="form-group">
+            <label for="estado">Estado <span class="required">*</span></label>
+            <select class="form-control" name="estado" id="estado" required>
+              <option value="1">Activo</option>
+              <option value="0">Inactivo</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="col-md-4">
+          <div class="form-group">
+            <label for="regional">Regional</label>
+            <input type="text" class="form-control" name="regional" id="regional" 
+                   placeholder="Ej: Regional Norte, Regional Sur">
+          </div>
+        </div>
+        
+        <div class="col-md-4">
+          <div class="form-group">
+            <label for="usuario_id">Usuario del Sistema</label>
+            <select class="form-control" name="usuario_id" id="usuario_id">
+              <option value="">Seleccionar usuario del sistema</option>
+              {% if usuarios %}
+                {% for usuario in usuarios %}
+                <option value="{{ usuario.id }}">
+                  {{ usuario.nombre }}{% if usuario.usuario %} ({{ usuario.usuario }}){% endif %}
+                </option>
+                {% endfor %}
+              {% endif %}
+            </select>
+          </div>
+        </div>
+        
+        <div class="col-md-4">
+          <div class="form-group">
+            <label for="rol_id">Rol del Sistema</label>
+            <select class="form-control" name="rol_id" id="rol_id">
+              <option value="">Seleccionar rol del sistema</option>
+              {% if roles %}
+                {% for rol in roles %}
+                <option value="{{ rol.id }}">{{ rol.nombre|title }}</option>
+                {% endfor %}
+              {% endif %}
+            </select>
+          </div>
+        </div>
+        
+        <div class="col-md-4">
+          <div class="form-group">
+            <label for="fecha_creacion">Fecha de Creación</label>
+            <input type="date" class="form-control" name="fecha_creacion" id="fecha_creacion">
+          </div>
+        </div>
+      </div>
+
+      <div class="row mt-4">
+        <div class="col-md-12 text-end">
+          <button type="submit" class="btn btn-primary" style="width: 180px;">
+            <i class="fas fa-plus me-2"></i>Agregar Cámara
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Lista de cámaras -->
+  <div class="table-container">
+    <h4 class="p-4 mb-0 border-bottom">
+      <i class="fas fa-list me-2"></i>Cámaras Registradas
+    </h4>
+    
+    <div class="table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>ID Cámara</th>
+            <th>Nombre</th>
+            <th>Correo</th>
+            <th>Usuario del Sistema</th>
+            <th>Rol</th>
+            <th>Estado</th>
+            <th>Regional</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if camaras %}
+            {% for camara in camaras %}
+            <tr>
+              <td><strong>{{ camara.id_camaras }}</strong></td>
+              <td>{{ camara.nombre }}</td>
+              <td>{{ camara.correo }}</td>
+              <td>
+                {% if camara.usuario_nombre %}
+                  <span class="badge bg-info">{{ camara.usuario_nombre }}</span>
+                {% else %}
+                  <span class="text-muted">Sin asignar</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if camara.rol_nombre %}
+                  <span class="badge bg-secondary">{{ camara.rol_nombre }}</span>
+                {% else %}
+                  <span class="text-muted">Sin rol</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if camara.estado %}
+                  <span class="status-badge status-active">Activo</span>
+                {% else %}
+                  <span class="status-badge status-inactive">Inactivo</span>
+                {% endif %}
+              </td>
+              <td>{{ camara.regional or 'N/A' }}</td>
+              <td>
+                <button class="btn btn-warning btn-sm me-1" 
+                        onclick="editarCamara('{{ camara.id_camaras }}')" 
+                        title="Editar">
+                  <i class="fas fa-edit"></i>
+                </button>
+                <form style="display: inline;" method="POST" action="{{ url_for('camaras_routes.camaras') }}" 
+                      onsubmit="return confirm('¿Está seguro de eliminar esta cámara?')">
+                  <input type="hidden" name="accion" value="eliminar">
+                  <input type="hidden" name="id_camaras" value="{{ camara.id_camaras }}">
+                  <button type="submit" class="btn btn-danger btn-sm" title="Eliminar">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="8" class="text-center py-4">
+                <i class="fas fa-video fa-3x text-muted mb-3"></i>
+                <p class="text-muted">No hay cámaras registradas</p>
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para editar cámara -->
+<div id="editModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000;">
+  <div style="position:relative; top:50%; left:50%; transform:translate(-50%,-50%); background:white; padding:20px; border-radius:8px; max-width:800px; width:90%; max-height:80vh; overflow-y:auto;">
+    <h3>Editar Cámara</h3>
+    <form id="editForm">
+      <input type="hidden" name="accion" value="editar">
+      
+      <div class="row">
+        <div class="col-md-4">
+          <div class="form-group">
+            <label>ID Cámara <span class="required">*</span></label>
+            <input type="text" class="form-control" name="id_camaras" id="edit_id_camaras" required readonly style="background-color: #f5f5f5;">
+          </div>
+        </div>
+        
+        <div class="col-md-4">
+          <div class="form-group">
+            <label>Correo Electrónico <span class="required">*</span></label>
+            <input type="email" class="form-control" name="correo" id="edit_correo" required>
+          </div>
+        </div>
+        
+        <div class="col-md-4">
+          <div class="form-group">
+            <label>Nombre <span class="required">*</span></label>
+            <input type="text" class="form-control" name="nombre" id="edit_nombre" required>
+          </div>
+        </div>
+      </div>
+      
+      <div class="row mt-3">
+        <div class="col-md-4">
+          <div class="form-group">
+            <label>Estado <span class="required">*</span></label>
+            <select class="form-control" name="estado" id="edit_estado" required>
+              <option value="1">Activo</option>
+              <option value="0">Inactivo</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="col-md-4">
+          <div class="form-group">
+            <label>Regional</label>
+            <input type="text" class="form-control" name="regional" id="edit_regional">
+          </div>
+        </div>
+        
+        <div class="col-md-4">
+          <div class="form-group">
+            <label>Usuario del Sistema</label>
+            <select class="form-control" name="usuario_id" id="edit_usuario_id">
+              <option value="">Seleccionar usuario del sistema</option>
+              {% if usuarios %}
+                {% for usuario in usuarios %}
+                <option value="{{ usuario.id }}">
+                  {{ usuario.nombre }}{% if usuario.usuario %} ({{ usuario.usuario }}){% endif %}
+                </option>
+                {% endfor %}
+              {% endif %}
+            </select>
+          </div>
+        </div>
+      </div>
+      
+      <div class="row mt-3">
+        <div class="col-md-4">
+          <div class="form-group">
+            <label>Rol del Sistema</label>
+            <select class="form-control" name="rol_id" id="edit_rol_id">
+              <option value="">Seleccionar rol del sistema</option>
+              {% if roles %}
+                {% for rol in roles %}
+                <option value="{{ rol.id }}">{{ rol.nombre|title }}</option>
+                {% endfor %}
+              {% endif %}
+            </select>
+          </div>
+        </div>
+        
+        <div class="col-md-4">
+          <div class="form-group">
+            <label>Fecha de Creación</label>
+            <input type="date" class="form-control" name="fecha_creacion" id="edit_fecha_creacion">
+          </div>
+        </div>
+      </div>
+      
+      <div class="row mt-4">
+        <div class="col-md-12 text-center">
+          <button type="button" onclick="cerrarModal()" class="btn btn-secondary btn-sm" style="padding: 4px 8px; font-size: 0.75rem; width: auto; margin-right: 8px;">
+            <i class="fas fa-times me-1"></i>Cancelar
+          </button>
+          <button type="submit" class="btn btn-primary btn-sm" style="padding: 4px 8px; font-size: 0.75rem; width: auto;">
+            <i class="fas fa-save me-1"></i>Actualizar
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function editarCamara(id) {
+  // Obtener datos de la cámara
+  fetch('/api/camara/' + id)
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        // Llenar el formulario con los datos
+        document.getElementById('edit_id_camaras').value = data.camara.id_camaras || '';
+        document.getElementById('edit_correo').value = data.camara.correo || '';
+        document.getElementById('edit_nombre').value = data.camara.nombre || '';
+        document.getElementById('edit_estado').value = data.camara.estado || '1';
+        document.getElementById('edit_regional').value = data.camara.regional || '';
+        document.getElementById('edit_usuario_id').value = data.camara.usuario_id || '';
+        document.getElementById('edit_rol_id').value = data.camara.rol_id || '';
+        
+        // Manejar fecha de creación
+        if (data.camara.fecha_creacion) {
+          // Si la fecha viene como string, la usamos directamente
+          if (typeof data.camara.fecha_creacion === 'string') {
+            document.getElementById('edit_fecha_creacion').value = data.camara.fecha_creacion.split(' ')[0]; // Solo la fecha, sin la hora
+          } else {
+            document.getElementById('edit_fecha_creacion').value = data.camara.fecha_creacion;
+          }
+        } else {
+          document.getElementById('edit_fecha_creacion').value = '';
+        }
+        
+        // Mostrar el modal
+        document.getElementById('editModal').style.display = 'block';
+      } else {
+        alert('Error al obtener los datos de la cámara: ' + (data.message || 'Error desconocido'));
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('Error al obtener los datos de la cámara');
+    });
+}
+
+function cerrarModal() {
+  document.getElementById('editModal').style.display = 'none';
+}
+
+// Manejar el envío del formulario de edición
+document.getElementById('editForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  
+  const formData = new FormData(this);
+  
+  fetch('/camaras', {
+    method: 'POST',
+    body: formData
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      alert('Cámara actualizada correctamente');
+      location.reload(); // Recargar la página para ver los cambios
+    } else {
+      alert('Error al actualizar la cámara: ' + (data.message || 'Error desconocido'));
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('Error al actualizar la cámara');
+  });
+});
+
+// Cerrar modal al hacer clic fuera de él
+document.getElementById('editModal').addEventListener('click', function(e) {
+  if (e.target === this) {
+    cerrarModal();
+  }
+});
+</script>
+
+{% endblock %}

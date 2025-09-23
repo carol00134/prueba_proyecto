@@ -130,11 +130,105 @@
       font-size: 1.25rem !important;
     }
 
+    /* Barra superior del usuario */
+    .user-navbar {
+      position: fixed;
+      top: 0;
+      right: 0;
+      left: 250px;
+      height: 60px;
+      background: #fff;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding: 0 2rem;
+      z-index: 999;
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%);
+      padding: 8px 16px;
+      border-radius: 25px;
+      border: 1px solid #e5e7eb;
+      margin-right: 1rem;
+    }
+
+    .user-avatar {
+      width: 35px;
+      height: 35px;
+      background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 10px;
+    }
+
+    .user-details {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .user-name {
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: #374151;
+      line-height: 1;
+    }
+
+    .user-status {
+      font-size: 0.75rem;
+      color: #6b7280;
+      line-height: 1;
+    }
+
+    .logout-btn {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2);
+    }
+
+    .logout-btn:hover {
+      background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
+      color: white;
+      text-decoration: none;
+    }
+
+    .logout-btn i {
+      margin-right: 6px;
+    }
+
+    /* Ajustar el contenido principal para la barra superior */
+    .main-content {
+      margin-left: 250px;
+      margin-top: 60px;
+      padding: 2rem;
+      min-height: 100vh;
+    }
+
     @media (max-width: 768px) {
       #sidebar {
         width: 100%;
         height: auto;
         position: relative;
+      }
+
+      .user-navbar {
+        left: 0;
       }
 
       .main-content {
@@ -144,36 +238,52 @@
   </style>
 </head>
 <body>
+  
   <!-- Sidebar -->
   <div id="sidebar">
-    <a href="{{ url_for('home') }}" class="sidebar-brand">
+    <a href="{{ url_for('home_routes.home') }}" class="sidebar-brand">
       <i class="fas fa-map-marked-alt me-2"></i>Mapa de Calor
     </a>
     
     <nav class="nav flex-column">
-      <a class="nav-link" href="{{ url_for('home') }}">
+      <a class="nav-link" href="{{ url_for('home_routes.home') }}">
         <i class="fas fa-home"></i>Inicio
       </a>
-      <a class="nav-link" href="{{ url_for('mapas') }}">
+      <a class="nav-link" href="{{ url_for('mapas_routes.mapas') }}">
         <i class="fas fa-map"></i>Mapas
       </a>
-      <a class="nav-link" href="{{ url_for('login') }}">
-        <i class="fas fa-sign-in-alt"></i>Login
-      </a>
-      <a class="nav-link" href="{{ url_for('tickets') }}">
+      <a class="nav-link" href="{{ url_for('tickets_routes.tickets') }}">
         <i class="fas fa-file-alt"></i>Tickets
       </a>
-      <a class="nav-link" href="{{ url_for('usuarios') }}">
+      <a class="nav-link" href="{{ url_for('usuarios_routes.usuarios') }}">
         <i class="fas fa-users"></i>Usuarios
       </a>
-      <a class="nav-link" href="{{ url_for('catalogos') }}">
-        <i class="fas fa-database"></i>Catálogos
+      <a class="nav-link" href="{{ url_for('camaras_routes.camaras') }}">
+        <i class="fas fa-video"></i>Cámaras
       </a>
-      <a class="nav-link" href="{{ url_for('puntos_geograficos') }}">
+      <a class="nav-link" href="{{ url_for('puntos_geograficos_routes.puntoGeografico') }}">
         <i class="fas fa-map-pin"></i>Punto geográfico
       </a>
     </nav>
   </div>
+
+  <!-- Barra superior del usuario -->
+  {% if session.usuario %}
+  <div class="user-navbar">
+    <div class="user-info">
+      <div class="user-avatar">
+        <i class="fas fa-user" style="color: #fff; font-size: 14px;"></i>
+      </div>
+      <div class="user-details">
+        <div class="user-name">{{ session.usuario }}</div>
+        <div class="user-status">Usuario activo</div>
+      </div>
+    </div>
+    <a href="{{ url_for('auth_routes.logout') }}" class="logout-btn">
+      <i class="fas fa-sign-out-alt"></i>Cerrar Sesión
+    </a>
+  </div>
+  {% endif %}
 
   <!-- Main Content -->
   <div class="main-content">

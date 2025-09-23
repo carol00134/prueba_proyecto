@@ -3,7 +3,7 @@
 {% block title %}Dashboard - Sistema de Gestión{% endblock %}
 
 {% block back_button %}
-<!-- Sin botón de regresar en el dashboard -->
+
 {% endblock %}
 
 {% block content %}
@@ -82,7 +82,7 @@
     </div>
   </div>
 
-  <!-- Estadísticas principales -->
+<!------------------------------------------Estadsticas usuarios------------------------------------>>
   <div class="row mb-4">
     <div class="col-lg-3 col-md-6 mb-3">
       <div class="dashboard-card text-center">
@@ -91,18 +91,18 @@
         </div>
         <div class="stat-number text-primary">{{ usuarios_activos }}</div>
         <div class="stat-label">Usuarios Activos</div>
-        <small class="text-muted">Actualizado hace menos de un minuto</small>
+        <small class="text-muted">Registrados en el sistema</small>
       </div>
     </div>
     
     <div class="col-lg-3 col-md-6 mb-3">
       <div class="dashboard-card text-center">
         <div class="stat-icon text-info">
-          <i class="fas fa-ticket-alt"></i>
+          <i class="fas fa-video"></i>
         </div>
-        <div class="stat-number text-info">{{ tickets_nuevos }}</div>
-        <div class="stat-label">Total Tickets</div>
-        <small class="text-muted">Registrados en el sistema</small>
+        <div class="stat-number text-info">{{ camaras_activas }}</div>
+        <div class="stat-label">Cámaras Activas</div>
+        <small class="text-muted">En funcionamiento</small>
       </div>
     </div>
     
@@ -119,20 +119,8 @@
         <small class="text-muted">Última actualización: {{ hora_actual.strftime('%H:%M:%S') if hora_actual else 'N/A' }}</small>
       </div>
     </div>
-    
-    <div class="col-lg-3 col-md-6 mb-3">
-      <div class="dashboard-card text-center">
-        <div class="stat-icon text-warning">
-          <i class="fas fa-map-marker-alt"></i>
-        </div>
-        <div class="stat-number text-warning">{{ puntos_geograficos }}</div>
-        <div class="stat-label">Puntos Geográficos</div>
-        <small class="text-muted">Registrados en el sistema</small>
-      </div>
-    </div>
   </div>
 
-  <!-- Módulos principales -->
   <div class="row">
     <div class="col-12">
       <h3 class="mb-3">Módulos del Sistema</h3>
@@ -141,33 +129,32 @@
 
   <div class="row">
     <div class="col-lg-4 col-md-6 mb-3">
-      <a href="{{ url_for('mapas') }}" class="feature-card d-block">
+      <a href="{{ url_for('mapas_routes.mapas') }}" class="feature-card d-block">
         <div class="text-center">
           <div class="feature-icon">
             <i class="fas fa-map"></i>
           </div>
           <h5>Mapas Interactivos</h5>
           <p class="text-muted mb-2">Visualiza y gestiona puntos geográficos</p>
-          <small class="text-muted">Accede a mapas con filtros avanzados, mapas de calor y herramientas de análisis geográfico.</small>
+          
         </div>
       </a>
     </div>
     
     <div class="col-lg-4 col-md-6 mb-3">
-      <a href="{{ url_for('usuarios') }}" class="feature-card d-block">
+      <a href="{{ url_for('usuarios_routes.usuarios') }}" class="feature-card d-block">
         <div class="text-center">
           <div class="feature-icon">
             <i class="fas fa-users-cog"></i>
           </div>
           <h5>Gestión de Usuarios</h5>
           <p class="text-muted mb-2">Administra usuarios y permisos</p>
-          <small class="text-muted">Crear, editar y gestionar usuarios del sistema con diferentes niveles de acceso.</small>
         </div>
       </a>
     </div>
     
     <div class="col-lg-4 col-md-6 mb-3">
-      <a href="{{ url_for('tickets') }}" class="feature-card d-block">
+      <a href="{{ url_for('tickets_routes.tickets') }}" class="feature-card d-block">
         <div class="text-center">
           <div class="feature-icon">
             <i class="fas fa-file-alt"></i>
@@ -180,256 +167,29 @@
     </div>
     
     <div class="col-lg-4 col-md-6 mb-3">
-      <a href="{{ url_for('tickets') }}" class="feature-card d-block">
+      <a href="{{ url_for('tickets_routes.tickets') }}" class="feature-card d-block">
         <div class="text-center">
           <div class="feature-icon">
             <i class="fas fa-list-alt"></i>
           </div>
           <h5>Lista de Tickets</h5>
           <p class="text-muted mb-2">Visualiza y edita tickets existentes</p>
-          <small class="text-muted">Consulta, filtra, edita y elimina tickets del sistema con herramientas de búsqueda.</small>
+          <small class="text-muted">Consulta, filtra, edita y elimina tickets del sistema.</small>
         </div>
       </a>
     </div>
     
     <div class="col-lg-4 col-md-6 mb-3">
-      <a href="{{ url_for('catalogos') }}" class="feature-card d-block">
+      <a href="{{ url_for('camaras_routes.camaras') }}" class="feature-card d-block">
         <div class="text-center">
           <div class="feature-icon">
-            <i class="fas fa-database"></i>
+            <i class="fas fa-video"></i>
           </div>
-          <h5>Catálogos</h5>
+          <h5>Cámaras</h5>
           <p class="text-muted mb-2">Gestiona catálogos del sistema</p>
-          <small class="text-muted">Administra departamentos, municipios, tipologías, despachos y unidades.</small>
         </div>
       </a>
     </div>
   </div>
 </div>
 {% endblock %}
-      padding: 2rem;
-      min-height: 100vh;
-    }
-
-    .card {
-      border: none;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-
-    .card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
-    }
-
-    .top-info .card-body {
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      align-items: flex-start;
-    }
-
-    .top-info .card-title {
-      font-size: 1rem;
-      color: #6c757d;
-    }
-
-    .top-info .card-text {
-      font-size: 2rem;
-      font-weight: 600;
-      color: #212529;
-    }
-
-    .top-info .icon-status {
-      font-size: 2.5rem;
-      color: #0d6efd;
-    }
-
-    .top-info .icon-status.active-users {
-      color: #28a745;
-    }
-
-    .top-info .icon-status.new-tickets {
-      color: #ffc107;
-    }
-
-    .top-info .icon-status.system-alerts {
-      color: #dc3545;
-    }
-
-    .top-info .icon-status.system-status {
-      color: #17a2b8;
-    }
-
-    .feature-card .card-body {
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-    }
-
-    .feature-card .card-title {
-      font-size: 1.25rem;
-      font-weight: 600;
-    }
-
-    .feature-card .card-text {
-      font-size: 0.9rem;
-      color: #6c757d;
-      flex-grow: 1;
-    }
-
-    .feature-card .btn {
-      width: 100%;
-      margin-top: auto;
-      border-radius: 8px;
-    }
-
-    @media (max-width: 768px) {
-      #sidebar {
-        width: 100%;
-        min-height: auto;
-        position: relative;
-      }
-
-      .main-content {
-        margin-left: 0;
-        margin-top: 0;
-        padding: 1rem;
-      }
-    }
-  </style>
-</head>
-
-<body>
-  <nav id="sidebar">
-    <div class="sidebar-header">
-      <a class="navbar-brand fw-bold text-white" href="{{ url_for('home') }}"><i
-          class="fa-solid fa-fire-flame-curved me-2"></i>Mapa de Calor</a>
-    </div>
-    <ul class="nav flex-column px-3">
-      <li class="nav-item mb-2">
-        <a class="nav-link text-white" href="{{ url_for('home') }}"><i class="fa-solid fa-house me-2"></i>Inicio</a>
-      </li>
-      <li class="nav-item mb-2">
-        <a class="nav-link text-white" href="{{ url_for('mapas') }}"><i class="fa-solid fa-map me-2"></i>Mapas</a>
-      </li>
-      <li class="nav-item mb-2">
-        <a class="nav-link text-white" href="{{ url_for('login') }}"><i
-            class="fa-solid fa-right-to-bracket me-2"></i>Login</a>
-      </li>
-      <li class="nav-item mb-2">
-        <a class="nav-link text-white" href="{{ url_for('tickets') }}"><i
-            class="fa-solid fa-id-card me-2"></i>Tickets</a>
-      </li>
-      <li class="nav-item mb-2">
-        <a class="nav-link text-white" href="{{ url_for('usuarios') }}"><i
-            class="fa-solid fa-users me-2"></i>Usuarios</a>
-      </li>
-      <li class="nav-item mb-2">
-        <a class="nav-link text-white" href="{{ url_for('puntoGeografico') }}"><i
-            class="fa-solid fa-map-location-dot me-2"></i>Punto geográfico</a>
-      </li>
-    </ul>
-  </nav>
-
-  <div class="main-content">
-  <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-5 justify-content-center text-center">
-      <div class="col">
-        <div class="card h-100 top-info">
-          <div class="card-body">
-            <div class="d-flex w-100 flex-column align-items-center justify-content-center">
-              <h5 class="card-title">Usuarios Activos</h5>
-              <i class="fas fa-users icon-status active-users"></i>
-            </div>
-            <p class="card-text" id="usuarios-activos">{{ usuarios_activos if usuarios_activos is defined else '' }}</p>
-            <small class="text-muted">Actualizado hace menos de un minuto</small>
-          </div>
-        </div>
-      </div>
-      <div class="col">
-        <div class="card h-100 top-info">
-          <div class="card-body">
-            <div class="d-flex w-100 justify-content-between align-items-center">
-              <h5 class="card-title">Tickets Nuevos</h5>
-              <i class="fas fa-ticket-alt icon-status new-tickets"></i>
-            </div>
-            <p class="card-text">0</p>
-            <small class="text-muted">Pendientes de asignación</small>
-          </div>
-        </div>
-      </div>
-      <div class="col">
-        <div class="card h-100 top-info">
-          <div class="card-body">
-            <div class="d-flex w-100 justify-content-between align-items-center">
-              <h5 class="card-title">Estado del Sistema</h5>
-              <i class="fas fa-chart-line icon-status system-status"></i>
-            </div>
-            <p class="card-text"><span class="text-success small me-2">●</span>En línea</p>
-            <small class="text-muted">Última actualización: 9:57:15 p.m.</small>
-          </div>
-        </div>
-      </div>
-    </div>
-
-  <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-4 justify-content-center text-center">
-      <div class="col">
-        <div class="card h-100 feature-card">
-          <div class="card-body d-flex flex-column align-items-center justify-content-center">
-            <h5 class="card-title w-100 text-center"><i class="fa-solid fa-map me-2 text-primary"></i>Mapas Interactivos</h5>
-            <p class="card-text">Visualiza y gestiona puntos geográficos<br><br>Accede a mapas con filtros avanzados, mapas de calor y herramientas de análisis geográfico.</p>
-            <a href="{{ url_for('mapas') }}" class="btn btn-primary btn-sm">Abrir Mapas</a>
-          </div>
-        </div>
-      </div>
-      <div class="col">
-        <div class="card h-100 feature-card">
-          <div class="card-body d-flex flex-column align-items-center justify-content-center">
-            <h5 class="card-title w-100 text-center"><i class="fa-solid fa-users me-2 text-success"></i>Gestión de Usuarios</h5>
-            <p class="card-text">Administra usuarios y permisos<br><br>Crear, editar y gestionar usuarios del sistema con diferentes niveles de acceso.</p>
-            <a href="{{ url_for('usuarios') }}" class="btn btn-success btn-sm">Gestionar Usuarios</a>
-          </div>
-        </div>
-      </div>
-      <div class="col">
-        <div class="card h-100 feature-card">
-          <div class="card-body d-flex flex-column align-items-center justify-content-center">
-            <h5 class="card-title w-100 text-center"><i class="fa-solid fa-ticket-alt me-2 text-info"></i>Sistema de Tickets</h5>
-            <p class="card-text">Gestiona solicitudes y reportes<br><br>Crea, asigna y da seguimiento a tickets del sistema de manera eficiente.</p>
-            <a href="{{ url_for('tickets') }}" class="btn btn-info btn-sm text-white">Ver Tickets</a>
-          </div>
-        </div>
-      </div>
-    </div>
-
-  <div class="row g-4 justify-content-center text-center">
-      <div class="col-12 col-md-6 col-lg-4">
-        <div class="card h-100 feature-card">
-          <div class="card-body d-flex flex-column align-items-center justify-content-center">
-            <h5 class="card-title w-100 text-center"><i class="fa-solid fa-chart-bar me-2 text-warning"></i>Estadísticas</h5>
-            <p class="card-text">Análisis y reportes del sistema<br><br>Visualiza métricas, gráficos y reportes detallados del sistema.</p>
-            <a href="#" class="btn btn-warning btn-sm text-white">Ver Estadísticas</a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  <script>
-    function actualizarUsuariosActivos() {
-      fetch('/api/usuarios_activos')
-        .then(response => response.json())
-        .then(data => {
-          document.getElementById('usuarios-activos').textContent = data.activos;
-        });
-    }
-    setInterval(actualizarUsuariosActivos, 5000);
-    window.onload = actualizarUsuariosActivos;
-  </script>
-
-
-</body>
-
-</html>

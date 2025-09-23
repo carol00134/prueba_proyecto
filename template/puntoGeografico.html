@@ -174,7 +174,7 @@
   <div class="punto-container">
     <h3 class="mb-3">Agregar Nuevo Punto Geográfico</h3>
     
-    <form method="POST" action="{{ url_for('puntos_geograficos') }}">
+    <form method="POST" action="{{ url_for('puntos_geograficos_routes.puntos_geograficos') }}">
       <div class="form-inline">
         <div class="form-group">
           <label for="nombre">Nombre <span class="required">*</span></label>
@@ -270,7 +270,7 @@
                 <button class="btn btn-warning btn-sm" onclick="editarPunto('{{ punto.id }}')" style="width: auto; display: inline-block; padding: 0.375rem 0.75rem;">
                   <i class="fas fa-edit"></i>
                 </button>
-                <form style="display: inline;" method="POST" action="{{ url_for('puntos_geograficos') }}" 
+                <form style="display: inline;" method="POST" action="{{ url_for('puntos_geograficos_routes.puntos_geograficos') }}" 
                       onsubmit="return confirm('¿Está seguro de eliminar este punto geográfico?')">
                   <input type="hidden" name="id" value="{{ punto.id }}">
                   <button type="submit" name="accion" value="eliminar" class="btn btn-danger btn-sm" style="width: auto; display: inline-block; padding: 0.375rem 0.75rem;">

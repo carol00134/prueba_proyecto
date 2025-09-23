@@ -165,3 +165,6 @@ Flask-Limiter==3.5.0
 
 # Error común: "Port already in use"
 # Solución: Cambia el puerto en app.py o mata el proceso existente
+
+#pip install pandas 
+#pip install openpyxl

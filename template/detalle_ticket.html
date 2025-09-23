@@ -1,0 +1,338 @@
+p{% extends "base.html" %}
+
+{% block title %}Detalle del Ticket {{ ticket.id }} - Sistema{% endblock %}
+
+{% block page_title %}Detalle del Ticket{% endblock %}
+
+{% block back_button %}
+<a href="/tickets" class="btn-back">
+  <i class="fas fa-arrow-left me-1"></i>Volver a Tickets
+</a>
+{% endblock %}
+
+{% block content %}
+<style>
+.detail-container {
+  background: #fff;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  margin-bottom: 2rem;
+}
+
+.ticket-header {
+  background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%);
+  color: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.ticket-id {
+  font-size: 1.8rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.ticket-date {
+  font-size: 1rem;
+  opacity: 0.9;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.info-card {
+  background: #f8fafc;
+  border-left: 4px solid #6366f1;
+  padding: 1.5rem;
+  border-radius: 8px;
+}
+
+.info-card h6 {
+  color: #6366f1;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.info-item:last-child {
+  border-bottom: none;
+}
+
+.info-label {
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.875rem;
+}
+
+.info-value {
+  color: #6b7280;
+  font-size: 0.875rem;
+  text-align: right;
+  max-width: 60%;
+  word-wrap: break-word;
+}
+
+.coordinates-display {
+  background: #ecfdf5;
+  border: 1px solid #d1fae5;
+  padding: 1rem;
+  border-radius: 8px;
+  text-align: center;
+  margin-top: 1rem;
+}
+
+.coordinates-title {
+  font-weight: 600;
+  color: #065f46;
+  margin-bottom: 0.5rem;
+}
+
+.coordinates-value {
+  font-family: 'Courier New', monospace;
+  font-size: 1.1rem;
+  color: #047857;
+}
+
+.description-card {
+  background: #fffbeb;
+  border: 1px solid #fed7aa;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.description-title {
+  color: #92400e;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+}
+
+.description-content {
+  color: #78350f;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.tags-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.tag {
+  background: #e0e7ff;
+  color: #3730a3;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-active {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.btn-action {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: white;
+}
+
+.btn-warning {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+}
+
+.btn-action:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  text-decoration: none;
+  color: white;
+}
+
+@media (max-width: 768px) {
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+  }
+}
+</style>
+
+<div class="container-fluid px-4">
+  <!-- Encabezado del Ticket -->
+  <div class="ticket-header">
+    <div class="ticket-id">
+      <i class="fas fa-ticket-alt me-2"></i>{{ ticket.id }}
+    </div>
+    <div class="ticket-date">
+      Creado el {{ ticket.fecha_hora.strftime('%d de %B de %Y a las %H:%M') if ticket.fecha_hora else 'Fecha no disponible' }}
+    </div>
+  </div>
+
+  <!-- Información Principal -->
+  <div class="info-grid">
+    <!-- Información Básica -->
+    <div class="info-card">
+      <h6><i class="fas fa-info-circle me-1"></i>Información Básica</h6>
+      <div class="info-item">
+        <span class="info-label">Usuario Creador:</span>
+        <span class="info-value">{{ ticket.usuario_nombre or 'N/A' }}{% if ticket.usuario_login %} ({{ ticket.usuario_login }}){% endif %}</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Rol:</span>
+        <span class="info-value">{{ ticket.usuario_rol or 'N/A' }}</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Regional:</span>
+        <span class="info-value">{{ ticket.regional or 'N/A' }}</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Mando:</span>
+        <span class="info-value">{{ ticket.mando or 'N/A' }}</span>
+      </div>
+    </div>
+
+    <!-- Ubicación -->
+    <div class="info-card">
+      <h6><i class="fas fa-map-marker-alt me-1"></i>Ubicación</h6>
+      <div class="info-item">
+        <span class="info-label">Departamento:</span>
+        <span class="info-value">{{ ticket.departamento_nombre or 'N/A' }}</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Municipio:</span>
+        <span class="info-value">{{ ticket.municipio_nombre or 'N/A' }}</span>
+      </div>
+      {% if ticket.latitud and ticket.longitud %}
+      <div class="coordinates-display">
+        <div class="coordinates-title">Coordenadas GPS</div>
+        <div class="coordinates-value">
+          {{ "%.6f"|format(ticket.latitud) }}, {{ "%.6f"|format(ticket.longitud) }}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Clasificación -->
+    <div class="info-card">
+      <h6><i class="fas fa-tags me-1"></i>Clasificación</h6>
+      <div class="info-item">
+        <span class="info-label">Tipología:</span>
+        <span class="info-value">{{ ticket.tipologia_nombre or 'N/A' }}</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Subtipología:</span>
+        <span class="info-value">{{ ticket.subtipologia_nombre or 'N/A' }}</span>
+      </div>
+      {% if despachos or unidades %}
+      <div class="tags-container">
+        {% for despacho in despachos %}
+        <span class="tag">📋 {{ despacho }}</span>
+        {% endfor %}
+        {% for unidad in unidades %}
+        <span class="tag">🚔 {{ unidad }}</span>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Registro -->
+    <div class="info-card">
+      <h6><i class="fas fa-file-alt me-1"></i>Información de Registro</h6>
+      <div class="info-item">
+        <span class="info-label">Número de Registro:</span>
+        <span class="info-value">{{ ticket.registro or 'N/A' }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Descripciones y Notas -->
+  {% if ticket.descripcion %}
+  <div class="description-card">
+    <div class="description-title">
+      <i class="fas fa-align-left me-2"></i>Descripción del Incidente
+    </div>
+    <div class="description-content">{{ ticket.descripcion }}</div>
+  </div>
+  {% endif %}
+
+  {% if ticket.nota_respaldo %}
+  <div class="description-card">
+    <div class="description-title">
+      <i class="fas fa-sticky-note me-2"></i>Nota de Respaldo
+    </div>
+    <div class="description-content">{{ ticket.nota_respaldo }}</div>
+  </div>
+  {% endif %}
+
+  {% if ticket.nota_final %}
+  <div class="description-card">
+    <div class="description-title">
+      <i class="fas fa-check-circle me-2"></i>Nota Final
+    </div>
+    <div class="description-content">{{ ticket.nota_final }}</div>
+  </div>
+  {% endif %}
+
+  <!-- Botones de Acción -->
+  <div class="action-buttons">
+    <a href="/editar_ticket/{{ ticket.id }}" class="btn-action btn-warning">
+      <i class="fas fa-edit"></i>Editar Ticket
+    </a>
+    <a href="/tickets" class="btn-action btn-primary">
+      <i class="fas fa-list"></i>Ver Todos los Tickets
+    </a>
+  </div>
+</div>
+{% endblock %}

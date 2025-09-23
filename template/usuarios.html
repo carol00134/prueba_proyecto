@@ -101,6 +101,23 @@
   transform: translateY(-1px);
 }
 
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.status-active {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status-inactive {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
 .table-users {
   background: #fff;
   border-radius: 12px;
@@ -134,8 +151,8 @@
 }
 
 .badge-administrador { background: #ddd6fe; color: #5b21b6; }
-.badge-call-center { background: #dbeafe; color: #1d4ed8; }
-.badge-master { background: #d1fae5; color: #065f46; }
+.badge-operador { background: #dbeafe; color: #1d4ed8; }
+.badge-supervisor { background: #d1fae5; color: #065f46; }
 
 .required {
   color: #dc2626;
@@ -173,7 +190,7 @@
       {% endif %}
     </h3>
     
-    <form action="{{ url_for('usuarios') }}" method="post">
+    <form action="{{ url_for('usuarios_routes.usuarios') }}" method="post">
       <div class="form-section">
         <div class="form-group">
           <label for="nombre">Nombre Completo <span class="required">*</span></label>
@@ -199,16 +216,24 @@
         <div class="form-group">
           <label for="rol">Rol <span class="required">*</span></label>
           <select id="rol" name="rol" class="form-control" required>
-            <option value="">Selecciona un rol</option>
+            <option value="">-- Selecciona un rol (obligatorio) --</option>
             <option value="administrador" {% if usuario_editar and usuario_editar['rol'] == 'administrador' %}selected{% endif %}>
               Administrador
             </option>
-            <option value="call center" {% if usuario_editar and usuario_editar['rol'] == 'call center' %}selected{% endif %}>
-              Call Center
+            <option value="operador" {% if usuario_editar and usuario_editar['rol'] == 'operador' %}selected{% endif %}>
+              Operador
             </option>
-            <option value="master" {% if usuario_editar and usuario_editar['rol'] == 'master' %}selected{% endif %}>
-              Master
+            <option value="supervisor" {% if usuario_editar and usuario_editar['rol'] == 'supervisor' %}selected{% endif %}>
+              Supervisor
             </option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="estado">Estado <span class="required">*</span></label>
+          <select id="estado" name="estado" class="form-control" required>
+            <option value="1" {% if not usuario_editar or usuario_editar['activo'] %}selected{% endif %}>Activo</option>
+            <option value="0" {% if usuario_editar and not usuario_editar['activo'] %}selected{% endif %}>Inactivo</option>
           </select>
         </div>
       </div>
@@ -260,16 +285,20 @@
               {% endif %}
             </td>
             <td>
-              <span class="badge bg-success">Activo</span>
+              {% if usuario.activo %}
+                <span class="status-badge status-active">Activo</span>
+              {% else %}
+                <span class="status-badge status-inactive">Inactivo</span>
+              {% endif %}
             </td>
             <td>
-              <form style="display: inline;" method="post" action="{{ url_for('usuarios') }}">
+              <form style="display: inline;" method="post" action="{{ url_for('usuarios_routes.usuarios') }}">
                 <input type="hidden" name="username" value="{{ usuario.usuario }}">
                 <button type="submit" name="accion" value="mostrar_editar" class="btn btn-warning btn-sm" style="width: auto; display: inline-block; padding: 0.375rem 0.75rem;">
                   <i class="fas fa-edit"></i>
                 </button>
               </form>
-              <form style="display: inline;" method="post" action="{{ url_for('usuarios') }}" 
+              <form style="display: inline;" method="post" action="{{ url_for('usuarios_routes.usuarios') }}" 
                     onsubmit="return confirm('¿Está seguro de eliminar este usuario?')">
                 <input type="hidden" name="username" value="{{ usuario.usuario }}">
                 <button type="submit" name="accion" value="eliminar" class="btn btn-danger btn-sm" style="width: auto; display: inline-block; padding: 0.375rem 0.75rem;">
@@ -284,4 +313,36 @@
     </div>
   </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form[action*="usuarios"]');
+    const rolSelect = document.getElementById('rol');
+    
+    if (form && rolSelect) {
+        form.addEventListener('submit', function(e) {
+            const accion = e.submitter.value;
+            
+            // Solo validar para agregar y editar
+            if (accion === 'agregar' || accion === 'editar') {
+                if (!rolSelect.value || rolSelect.value.trim() === '') {
+                    e.preventDefault();
+                    alert('Error: Debe seleccionar un rol para el usuario. El rol es obligatorio.');
+                    rolSelect.focus();
+                    rolSelect.style.borderColor = '#dc2626';
+                    return false;
+                }
+            }
+        });
+        
+        // Remover el borde rojo cuando se selecciona un rol
+        rolSelect.addEventListener('change', function() {
+            if (this.value) {
+                this.style.borderColor = '#e5e7eb';
+            }
+        });
+    }
+});
+</script>
+
 {% endblock %}

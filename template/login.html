@@ -16,7 +16,7 @@
 			{{ error }}
 		</div>
 		{% endif %}
-		<form method="POST" action="{{ url_for('login') }}">
+		<form method="POST" action="{{ url_for('auth_routes.login') }}">
 			<label for="username">Usuario:</label>
 			<input type="text" id="username" name="username" required>
 			<label for="password">Contraseña:</label>

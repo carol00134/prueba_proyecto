@@ -48,6 +48,40 @@
   line-height: 1.5;
 }
 
+.checkbox-group {
+  background: #fafafa;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.5rem;
+  padding: 0.75rem !important;
+}
+
+.checkbox-group .form-check {
+  margin-bottom: 5rem;
+  padding: 1.25rem 0;
+  break-inside: avoid;
+}
+
+.checkbox-group .form-check:last-child {
+  margin-bottom: 0;
+}
+
+.checkbox-group .form-check-label {
+  font-size: 0.875rem;
+  cursor: pointer;
+  margin-left: 0.25rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+  display: inline-block;
+}
+
+.checkbox-group .form-check-input {
+  margin-top: 0.125rem;
+  flex-shrink: 0;
+}
+
 .btn-group .btn {
   margin: 0;
 }
@@ -97,6 +131,29 @@
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Botón de crear ticket más angosto */
+.btn-create-ticket {
+  width: 55px !important;
+  min-width: 55px !important;
+  max-width: 55px !important;
+  padding: 0.15rem 0.3rem !important;
+  font-size: 0.65rem !important;
+  white-space: nowrap;
+  display: inline-block !important;
+  text-align: center !important;
+}
+
+.btn-cancel-ticket {
+  width: 55px !important;
+  min-width: 55px !important;
+  max-width: 55px !important;
+  padding: 0.15rem 0.3rem !important;
+  font-size: 0.65rem !important;
+  white-space: nowrap;
+  display: inline-block !important;
+  text-align: center !important;
 }
 
 .table th {
@@ -156,18 +213,22 @@
       </button>
     </div>
     
-    <form method="POST" action="{{ url_for('tickets') }}" id="ticketForm">
+    <form method="POST" action="{{ url_for('tickets_routes.tickets') }}" id="ticketForm">
       <input type="hidden" id="ticket_id" name="ticket_id" value="0">
       
       <div class="form-container">
         <h6 class="mb-3">Información Básica</h6>
         
         <div class="row mb-3">
-          <div class="col-md-6">
+          <div class="col-md-4">
             <label for="fecha" class="form-label">Fecha y Hora <span class="text-danger">*</span></label>
             <input type="datetime-local" class="form-control" id="fecha" name="fecha" required>
           </div>
-          <div class="col-md-6">
+          <div class="col-md-4">
+            <label for="regional" class="form-label">Regional</label>
+            <input type="text" class="form-control" id="regional" name="regional" placeholder="Ej: Norte, Sur, Centro">
+          </div>
+          <div class="col-md-4">
             <label for="id_usuario" class="form-label">Usuario <span class="text-danger">*</span></label>
             <select class="form-select" id="id_usuario" name="id_usuario" required>
               <option value="">Seleccione un usuario</option>
@@ -269,31 +330,44 @@
         <h6 class="mb-3">Asignaciones</h6>
         
         <div class="row mb-3">
-          <div class="col-md-6">
-            <label for="despachos" class="form-label">Despachos</label>
-            <select class="form-select" id="despachos" name="despachos" multiple size="4">
+          <div class="col-md-12">
+            <label class="form-label">Despachos</label>
+            <div class="checkbox-group" style="max-height: 200px; overflow-y: auto; border: 1px solid #d1d5db; border-radius: 6px;">
               {% for despacho in despachos %}
-              <option value="{{ despacho.id }}">{{ despacho.nombre }}</option>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="despacho_{{ despacho.id }}" name="despachos" value="{{ despacho.id }}">
+                <label class="form-check-label" for="despacho_{{ despacho.id }}">
+                  {{ despacho.nombre }}
+                </label>
+              </div>
               {% endfor %}
-            </select>
+            </div>
           </div>
-          <div class="col-md-6">
-            <label for="unidades" class="form-label">Unidades</label>
-            <select class="form-select" id="unidades" name="unidades" multiple size="4">
+        </div>
+
+        <div class="row mb-3">
+          <div class="col-md-12">
+            <label class="form-label">Unidades</label>
+            <div class="checkbox-group" style="max-height: 200px; overflow-y: auto; border: 1px solid #d1d5db; border-radius: 6px;">
               {% for unidad in unidades %}
-              <option value="{{ unidad.id }}">{{ unidad.nombre }}</option>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="unidad_{{ unidad.id }}" name="unidades" value="{{ unidad.id }}">
+                <label class="form-check-label" for="unidad_{{ unidad.id }}">
+                  {{ unidad.nombre }}
+                </label>
+              </div>
               {% endfor %}
-            </select>
+            </div>
           </div>
         </div>
       </div>
 
       <div class="text-center">
-        <button type="submit" class="btn btn-primary btn-sm me-2" id="submit-btn">
-          <i class="fas fa-save me-1"></i>Crear Ticket
+        <button type="submit" class="btn btn-primary btn-sm btn-create-ticket me-2" id="submit-btn">
+          <i class="fas fa-save me-1"></i>Crear
         </button>
-        <button type="button" class="btn btn-secondary btn-sm" onclick="limpiarFormulario()">
-          <i class="fas fa-times me-1"></i>Cancelar
+        <button type="button" class="btn btn-secondary btn-sm btn-cancel-ticket" onclick="limpiarFormulario()">
+          <i class="fas fa-times me-1"></i>Limpiar
         </button>
       </div>
     </form>
@@ -307,10 +381,15 @@
         <i class="fas fa-plus me-1"></i>Agregar Ticket
       </a>
     </div>
+
+<!--cargar rchivo excel-->
+<br>
+
+
     
     <!-- Filtros -->
     <div class="row mb-3">
-      <div class="col-md-3">
+      <div class="col-md-2">
         <select class="form-select" id="filtro_departamento" onchange="filtrarTickets()">
           <option value="">Todos los departamentos</option>
           {% for depto in departamentos %}
@@ -318,18 +397,23 @@
           {% endfor %}
         </select>
       </div>
-      <div class="col-md-3">
-        <select class="form-select" id="filtro_tipologia" onchange="filtrarTickets()">
+      <div class="col-md-2">
+        <select class="form-select" id="filtro_tipologia" onchange="cargarSubtipologiasFiltro(); filtrarTickets()">
           <option value="">Todas las tipologías</option>
           {% for tipo in tipologias %}
           <option value="{{ tipo.id }}">{{ tipo.nombre }}</option>
           {% endfor %}
         </select>
       </div>
-      <div class="col-md-3">
+      <div class="col-md-2">
+        <select class="form-select" id="filtro_subtipologia" onchange="filtrarTickets()">
+          <option value="">Todas las subtipologías</option>
+        </select>
+      </div>
+      <div class="col-md-2">
         <input type="date" class="form-control" id="filtro_fecha" onchange="filtrarTickets()">
       </div>
-      <div class="col-md-3">
+      <div class="col-md-4">
         <button class="btn btn-secondary btn-sm" onclick="limpiarFiltros()">
           <i class="fas fa-refresh"></i> Limpiar
         </button>
@@ -343,9 +427,11 @@
             <tr>
               <th>ID</th>
               <th>Fecha</th>
+              <th>Regional</th>
               <th>Departamento</th>
               <th>Municipio</th>
               <th>Tipología</th>
+              <th>Subtipología</th>
               <th>Coordenadas</th>
               <th>Usuario</th>
               <th>Rol</th>
@@ -356,10 +442,12 @@
             {% for ticket in tickets %}
             <tr id="ticket-row-{{ ticket.id }}">
               <td><strong>#{{ ticket.id }}</strong></td>
-              <td>{{ ticket.fecha.strftime('%d/%m/%Y %H:%M') if ticket.fecha else 'N/A' }}</td>
+              <td>{{ ticket.fecha_hora.strftime('%d/%m/%Y %H:%M') if ticket.fecha_hora else 'N/A' }}</td>
+              <td>{{ ticket.regional or 'N/A' }}</td>
               <td>{{ ticket.departamento_nombre }}</td>
               <td>{{ ticket.municipio_nombre }}</td>
               <td>{{ ticket.tipologia_nombre }}</td>
+              <td>{{ ticket.subtipologia_nombre or 'N/A' }}</td>
               <td class="coordinates">
                 {% if ticket.latitud and ticket.longitud %}
                   {{ "%.6f"|format(ticket.latitud) }},<br>{{ "%.6f"|format(ticket.longitud) }}
@@ -405,14 +493,27 @@ document.getElementById('id_departamento').addEventListener('change', function()
     
     if (departamentoId) {
         fetch(`/api/municipios/${departamentoId}`)
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
             .then(data => {
-                data.forEach(municipio => {
-                    const option = document.createElement('option');
-                    option.value = municipio.id;
-                    option.textContent = municipio.nombre;
-                    municipioSelect.appendChild(option);
-                });
+                if (data && data.length > 0) {
+                    data.forEach(municipio => {
+                        const option = document.createElement('option');
+                        option.value = municipio.id;
+                        option.textContent = municipio.nombre;
+                        municipioSelect.appendChild(option);
+                    });
+                } else {
+                    municipioSelect.innerHTML = '<option value="">No hay municipios disponibles</option>';
+                }
+            })
+            .catch(error => {
+                console.error('Error al cargar municipios:', error);
+                municipioSelect.innerHTML = '<option value="">Error al cargar municipios</option>';
             });
     }
 });
@@ -448,7 +549,7 @@ function editarTicket(ticketId) {
                 
                 // Actualizar título y botón
                 document.getElementById('form-title').textContent = `Editar Ticket #${ticketId}`;
-                document.getElementById('submit-btn').innerHTML = '<i class="fas fa-save me-1"></i>Actualizar Ticket';
+                document.getElementById('submit-btn').innerHTML = '<i class="fas fa-save me-1"></i>Actualizar';
                 
                 // Llenar formulario
                 document.getElementById('ticket_id').value = ticketId;
@@ -514,7 +615,7 @@ function eliminarTicket(ticketId) {
         formData.append('action', 'delete');
         formData.append('ticket_id', ticketId);
         
-        fetch('{{ url_for("tickets") }}', {
+        fetch('/tickets', {
             method: 'POST',
             body: formData
         })
@@ -548,22 +649,96 @@ function limpiarFormulario() {
     document.getElementById('ticketForm').reset();
     document.getElementById('ticket_id').value = '0';
     document.getElementById('form-title').textContent = 'Crear Nuevo Ticket';
-    document.getElementById('submit-btn').innerHTML = '<i class="fas fa-save me-1"></i>Crear Ticket';
+    document.getElementById('submit-btn').innerHTML = '<i class="fas fa-save me-1"></i>Crear';
     document.querySelectorAll('tr').forEach(row => row.classList.remove('edit-row'));
     document.getElementById('id_municipio').innerHTML = '<option value="">Seleccione un municipio</option>';
     document.getElementById('id_subtipologia').innerHTML = '<option value="">Seleccione una subtipología</option>';
 }
 
+// Cargar subtipologías para filtro
+function cargarSubtipologiasFiltro() {
+    const tipologiaId = document.getElementById('filtro_tipologia').value;
+    const subtipologiaSelect = document.getElementById('filtro_subtipologia');
+    
+    subtipologiaSelect.innerHTML = '<option value="">Todas las subtipologías</option>';
+    
+    if (tipologiaId) {
+        fetch(`/api/subtipologias/${tipologiaId}`)
+            .then(response => response.json())
+            .then(data => {
+                data.forEach(subtipologia => {
+                    const option = document.createElement('option');
+                    option.value = subtipologia.id;
+                    option.textContent = subtipologia.nombre;
+                    subtipologiaSelect.appendChild(option);
+                });
+            });
+    }
+}
+
 // Filtrar tickets (función básica)
 function filtrarTickets() {
-    // Implementar filtrado del lado cliente o recargar con parámetros
-    console.log('Filtrar tickets');
+    const filtroDepartamento = document.getElementById('filtro_departamento').value;
+    const filtroTipologia = document.getElementById('filtro_tipologia').value;
+    const filtroSubtipologia = document.getElementById('filtro_subtipologia').value;
+    const filtroFecha = document.getElementById('filtro_fecha').value;
+    
+    const rows = document.querySelectorAll('#ticketsTable tbody tr');
+    
+    rows.forEach(row => {
+        let mostrar = true;
+        
+        // Filtro por departamento (ahora es columna 3)
+        if (filtroDepartamento) {
+            const departamento = row.cells[3].textContent.trim();
+            const departamentoSelect = document.getElementById('filtro_departamento');
+            const selectedOption = departamentoSelect.options[departamentoSelect.selectedIndex];
+            if (selectedOption && departamento !== selectedOption.textContent) {
+                mostrar = false;
+            }
+        }
+        
+        // Filtro por tipología (ahora es columna 5)
+        if (filtroTipologia) {
+            const tipologia = row.cells[5].textContent.trim();
+            const tipologiaSelect = document.getElementById('filtro_tipologia');
+            const selectedOption = tipologiaSelect.options[tipologiaSelect.selectedIndex];
+            if (selectedOption && tipologia !== selectedOption.textContent) {
+                mostrar = false;
+            }
+        }
+        
+        // Filtro por subtipología (ahora es columna 6)
+        if (filtroSubtipologia) {
+            const subtipologia = row.cells[6].textContent.trim();
+            const subtipologiaSelect = document.getElementById('filtro_subtipologia');
+            const selectedOption = subtipologiaSelect.options[subtipologiaSelect.selectedIndex];
+            if (selectedOption && subtipologia !== selectedOption.textContent && subtipologia !== 'N/A') {
+                mostrar = false;
+            }
+        }
+        
+        // Filtro por fecha (sigue siendo columna 1)
+        if (filtroFecha) {
+            const fechaTicket = row.cells[1].textContent.trim();
+            if (fechaTicket !== 'N/A') {
+                const fechaTicketFormateada = fechaTicket.split(' ')[0].split('/').reverse().join('-');
+                if (fechaTicketFormateada !== filtroFecha) {
+                    mostrar = false;
+                }
+            }
+        }
+        
+        row.style.display = mostrar ? '' : 'none';
+    });
 }
 
 function limpiarFiltros() {
     document.getElementById('filtro_departamento').value = '';
     document.getElementById('filtro_tipologia').value = '';
+    document.getElementById('filtro_subtipologia').value = '';
     document.getElementById('filtro_fecha').value = '';
+    cargarSubtipologiasFiltro(); // Limpiar subtipologías
     filtrarTickets();
 }
 </script>
