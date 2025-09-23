@@ -1,0 +1,520 @@
+-- MySQL dump 10.13  Distrib 8.0.33, for Win64 (x86_64)
+--
+-- Host: 127.0.0.1    Database: proyecto
+-- ------------------------------------------------------
+-- Server version	5.5.5-10.4.32-MariaDB
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!50503 SET NAMES utf8mb4 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Table structure for table `acceso_modulo`
+--
+
+DROP TABLE IF EXISTS `acceso_modulo`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `acceso_modulo` (
+  `rol_id` int(11) NOT NULL,
+  `modulo_id` int(11) NOT NULL,
+  PRIMARY KEY (`rol_id`,`modulo_id`),
+  KEY `modulo_id` (`modulo_id`),
+  CONSTRAINT `acceso_modulo_ibfk_1` FOREIGN KEY (`rol_id`) REFERENCES `roles` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `acceso_modulo_ibfk_2` FOREIGN KEY (`modulo_id`) REFERENCES `modulos` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `acceso_modulo`
+--
+
+/*!40000 ALTER TABLE `acceso_modulo` DISABLE KEYS */;
+/*!40000 ALTER TABLE `acceso_modulo` ENABLE KEYS */;
+
+--
+-- Table structure for table `camaras`
+--
+
+DROP TABLE IF EXISTS `camaras`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `camaras` (
+  `id_camaras` varchar(50) NOT NULL,
+  `correo` varchar(100) NOT NULL,
+  `nombre` varchar(100) NOT NULL,
+  `estado` tinyint(1) DEFAULT 1,
+  `regional` varchar(50) DEFAULT NULL,
+  `tipo_usuario` varchar(50) DEFAULT NULL,
+  `fecha_creacion` date DEFAULT NULL,
+  `fecha_ultima_modificacion` date DEFAULT NULL,
+  `cambio_password` date DEFAULT NULL,
+  `usuario_id` int(11) DEFAULT NULL,
+  `rol_id` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id_camaras`),
+  KEY `usuario_id` (`usuario_id`),
+  KEY `rol_id` (`rol_id`),
+  CONSTRAINT `camaras_ibfk_1` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `camaras_ibfk_2` FOREIGN KEY (`rol_id`) REFERENCES `roles` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `camaras`
+--
+
+/*!40000 ALTER TABLE `camaras` DISABLE KEYS */;
+/*!40000 ALTER TABLE `camaras` ENABLE KEYS */;
+
+--
+-- Table structure for table `departamentos`
+--
+
+DROP TABLE IF EXISTS `departamentos`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `departamentos` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `nombre` varchar(100) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `departamentos`
+--
+
+/*!40000 ALTER TABLE `departamentos` DISABLE KEYS */;
+INSERT INTO `departamentos` VALUES (1,'Atlántida'),(2,'Choluteca'),(3,'Colón'),(4,'Comayagua'),(5,'Copán'),(6,'Cortés'),(7,'El Paraíso'),(8,'Francisco Morazán'),(9,'Gracias a Dios'),(10,'Intibucá'),(11,'Islas de la Bahía'),(12,'La Paz'),(13,'Lempira'),(14,'Ocotepeque'),(15,'Olancho'),(16,'Santa Bárbara'),(17,'Valle'),(18,'Yoro');
+/*!40000 ALTER TABLE `departamentos` ENABLE KEYS */;
+
+--
+-- Table structure for table `despachos`
+--
+
+DROP TABLE IF EXISTS `despachos`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `despachos` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `nombre` varchar(100) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `despachos`
+--
+
+/*!40000 ALTER TABLE `despachos` DISABLE KEYS */;
+INSERT INTO `despachos` VALUES (1,'Policía Nacional'),(2,'UME'),(3,'Bomberos'),(4,'Cruz Roja'),(5,'URPA'),(6,'COPECO'),(7,'Policía Militar'),(8,'Psicología'),(9,'SIAT Transito'),(10,'DIPOL'),(11,'ATIC'),(12,'DIPANCO'),(13,'DPI'),(14,'DSTU'),(15,'Alcaldía'),(16,'SENAF'),(17,'UREM');
+/*!40000 ALTER TABLE `despachos` ENABLE KEYS */;
+
+--
+-- Table structure for table `emergencias_medicas`
+--
+
+DROP TABLE IF EXISTS `emergencias_medicas`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `emergencias_medicas` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `emergencia_medica` varchar(150) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `emergencias_medicas`
+--
+
+/*!40000 ALTER TABLE `emergencias_medicas` DISABLE KEYS */;
+/*!40000 ALTER TABLE `emergencias_medicas` ENABLE KEYS */;
+
+--
+-- Table structure for table `modulos`
+--
+
+DROP TABLE IF EXISTS `modulos`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `modulos` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `nombre` varchar(100) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `modulos`
+--
+
+/*!40000 ALTER TABLE `modulos` DISABLE KEYS */;
+/*!40000 ALTER TABLE `modulos` ENABLE KEYS */;
+
+--
+-- Table structure for table `municipios`
+--
+
+DROP TABLE IF EXISTS `municipios`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `municipios` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `nombre` varchar(100) NOT NULL,
+  `departamento_id` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `departamento_id` (`departamento_id`),
+  CONSTRAINT `municipios_ibfk_1` FOREIGN KEY (`departamento_id`) REFERENCES `departamentos` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=1182 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `municipios`
+--
+
+/*!40000 ALTER TABLE `municipios` DISABLE KEYS */;
+INSERT INTO `municipios` VALUES (883,'La Ceiba',1),(884,'El Porvenir',1),(885,'Esparta',1),(886,'Jutiapa',1),(887,'La Masica',1),(888,'La Ceiba',1),(889,'El Porvenir',1),(890,'Esparta',1),(891,'Jutiapa',1),(892,'La Masica',1),(893,'San Francisco',1),(894,'Tela',1),(895,'Arizona',1),(896,'Choluteca',2),(897,'Apacilagua',2),(898,'Concepción de María',2),(899,'Duyure',2),(900,'El Corpus',2),(901,'El Triunfo',2),(902,'Marcovia',2),(903,'Morolica',2),(904,'Namasigüe',2),(905,'Orocuina',2),(906,'Pespire',2),(907,'San Antonio de Flores',2),(908,'San Isidro',2),(909,'San José',2),(910,'San Marcos de Colón',2),(911,'Trujillo',3),(912,'Balfate',3),(913,'Iriona',3),(914,'Limón',3),(915,'Sabá',3),(916,'Santa Fe',3),(917,'Santa Rosa de Aguán',3),(918,'Sonaguera',3),(919,'Tocoa',3),(920,'Bonito Oriental',3),(921,'Comayagua',4),(922,'Ajuterique',4),(923,'El Rosario',4),(924,'Esquías',4),(925,'Humuya',4),(926,'La Libertad',4),(927,'Lamaní',4),(928,'La Trinidad',4),(929,'Lejamaní',4),(930,'Meámbar',4),(931,'Minas de Oro',4),(932,'Ojos de Agua',4),(933,'San Jerónimo',4),(934,'San José de Comayagua',4),(935,'San José del Potrero',4),(936,'San Luis',4),(937,'San Sebastián',4),(938,'Siguatepeque',4),(939,'Villa de San Antonio',4),(940,'Las Lajas',4),(941,'Taulabé',4),(942,'Santa Rosa de Copán',5),(943,'Cabañas',5),(944,'Concepción',5),(945,'Copán Ruinas',5),(946,'Corquín',5),(947,'Cucuyagua',5),(948,'Dolores',5),(949,'Dulce Nombre',5),(950,'El Paraíso',5),(951,'Florida',5),(952,'La Jigua',5),(953,'La Unión',5),(954,'Nueva Arcadia',5),(955,'San Agustín',5),(956,'San Antonio',5),(957,'San Jerónimo',5),(958,'San José',5),(959,'San Juan de Opoa',5),(960,'San Nicolás',5),(961,'San Pedro',5),(962,'Santa Rita',5),(963,'Trinidad de Copán',5),(964,'Veracruz',5),(965,'San Pedro Sula',6),(966,'Choloma',6),(967,'La Lima',6),(968,'Pimienta',6),(969,'Potrerillos',6),(970,'Puerto Cortés',6),(971,'San Antonio de Cortés',6),(972,'San Francisco de Yojoa',6),(973,'San Manuel',6),(974,'Santa Cruz de Yojoa',6),(975,'Villanueva',6),(976,'Omoa',6),(977,'Yuscarán',7),(978,'Alauca',7),(979,'Danlí',7),(980,'El Paraíso',7),(981,'Güinope',7),(982,'Jacaleapa',7),(983,'Liure',7),(984,'Morocelí',7),(985,'Oropolí',7),(986,'Potrerillos',7),(987,'San Antonio de Flores',7),(988,'San Lucas',7),(989,'San Matías',7),(990,'Soledad',7),(991,'Teupasenti',7),(992,'Texiguat',7),(993,'Vado Ancho',7),(994,'Distrito Central',8),(995,'Alubarén',8),(996,'Cedros',8),(997,'Curarén',8),(998,'El Porvenir',8),(999,'Guaimaca',8),(1000,'La Libertad',8),(1001,'La Venta',8),(1002,'Lepaterique',8),(1003,'Maraita',8),(1004,'Marale',8),(1005,'Nueva Armenia',8),(1006,'Ojojona',8),(1007,'Orica',8),(1008,'Reitoca',8),(1009,'Sabanagrande',8),(1010,'San Antonio de Oriente',8),(1011,'San Buenaventura',8),(1012,'San Ignacio',8),(1013,'San Juan de Flores',8),(1014,'San Miguelito',8),(1015,'Santa Ana',8),(1016,'Santa Lucía',8),(1017,'Talanga',8),(1018,'Tatumbla',8),(1019,'Valle de Ángeles',8),(1020,'Villa de San Francisco',8),(1021,'Vallecillo',8),(1022,'Puerto Lempira',9),(1023,'Brus Laguna',9),(1024,'Ahuas',9),(1025,'Juan Francisco Bulnes',9),(1026,'Ramón Villeda Morales',9),(1027,'Wampusirpe',9),(1028,'La Esperanza',10),(1029,'Camasca',10),(1030,'Colomoncagua',10),(1031,'Concepción',10),(1032,'Dolores',10),(1033,'Intibucá',10),(1034,'Jesús de Otoro',10),(1035,'Magdalena',10),(1036,'Masaguara',10),(1037,'San Antonio',10),(1038,'San Isidro',10),(1039,'San Juan',10),(1040,'San Marcos de la Sierra',10),(1041,'San Miguelito',10),(1042,'Santa Lucía',10),(1043,'Yamaranguila',10),(1044,'San Francisco de Opalaca',10),(1045,'Utila',11),(1046,'Guanaja',11),(1047,'Roatán',11),(1048,'La Paz',12),(1049,'Aguanqueterique',12),(1050,'Cabañas',12),(1051,'Cane',12),(1052,'Chinacla',12),(1053,'Guajiquiro',12),(1054,'Lauterique',12),(1055,'Marcala',12),(1056,'Mercedes de Oriente',12),(1057,'Opatoro',12),(1058,'San Antonio del Norte',12),(1059,'San José',12),(1060,'San Juan',12),(1061,'San Pedro de Tutule',12),(1062,'Santa Ana',12),(1063,'Santa Elena',12),(1064,'Santa María',12),(1065,'Santiago de Puringla',12),(1066,'Yarula',12),(1067,'Gracias',13),(1068,'Belén',13),(1069,'Candelaria',13),(1070,'Cololaca',13),(1071,'Erandique',13),(1072,'Gualcinse',13),(1073,'Guarita',13),(1074,'La Campa',13),(1075,'La Iguala',13),(1076,'Las Flores',13),(1077,'La Unión',13),(1078,'La Virtud',13),(1079,'Lepaera',13),(1080,'Mapulaca',13),(1081,'Piraera',13),(1082,'San Andrés',13),(1083,'San Francisco',13),(1084,'San Juan Guarita',13),(1085,'San Manuel Colohete',13),(1086,'San Marcos de Caiquín',13),(1087,'San Rafael',13),(1088,'San Sebastián',13),(1089,'Santa Cruz',13),(1090,'Talgua',13),(1091,'Tambla',13),(1092,'Tomalá',13),(1093,'Valladolid',13),(1094,'Virginia',13),(1095,'Nueva Ocotepeque',14),(1096,'Belén Gualcho',14),(1097,'Concepción',14),(1098,'Dolores Merendón',14),(1099,'Fraternidad',14),(1100,'La Encarnación',14),(1101,'La Labor',14),(1102,'Lucerna',14),(1103,'Mercedes',14),(1104,'San Fernando',14),(1105,'San Francisco del Valle',14),(1106,'San Jorge',14),(1107,'San Marcos',14),(1108,'Santa Fe',14),(1109,'Sensenti',14),(1110,'Sinuapa',14),(1111,'Juticalpa',15),(1112,'Campamento',15),(1113,'Catacamas',15),(1114,'Concordia',15),(1115,'Dulce Nombre de Culmí',15),(1116,'El Rosario',15),(1117,'Esquipulas del Norte',15),(1118,'Gualaco',15),(1119,'Guarizama',15),(1120,'Guata',15),(1121,'Guayape',15),(1122,'Jano',15),(1123,'La Unión',15),(1124,'Mangulile',15),(1125,'Manto',15),(1126,'Salamá',15),(1127,'San Esteban',15),(1128,'San Francisco de Becerra',15),(1129,'San Francisco de la Paz',15),(1130,'Santa María del Real',15),(1131,'Silca',15),(1132,'Yocón',15),(1133,'Patuca',15),(1134,'Santa Bárbara',16),(1135,'Arada',16),(1136,'Atima',16),(1137,'Azacualpa',16),(1138,'Ceguaca',16),(1139,'Concepción del Norte',16),(1140,'Concepción del Sur',16),(1141,'Chinda',16),(1142,'El Níspero',16),(1143,'Gualala',16),(1144,'Ilama',16),(1145,'Las Vegas',16),(1146,'Macuelizo',16),(1147,'Naranjito',16),(1148,'Nuevo Celilac',16),(1149,'Petoa',16),(1150,'Protección',16),(1151,'Quimistán',16),(1152,'San Francisco de Ojuera',16),(1153,'San José de las Colinas',16),(1154,'San Luis',16),(1155,'San Marcos',16),(1156,'San Nicolás',16),(1157,'San Pedro Zacapa',16),(1158,'San Vicente Centenario',16),(1159,'Santa Rita',16),(1160,'Trinidad',16),(1161,'Las Vegas',16),(1162,'Nacaome',17),(1163,'Alianza',17),(1164,'Amapala',17),(1165,'Aramecina',17),(1166,'Caridad',17),(1167,'Goascorán',17),(1168,'Langue',17),(1169,'San Francisco de Coray',17),(1170,'San Lorenzo',17),(1171,'Yoro',18),(1172,'Arenal',18),(1173,'El Negrito',18),(1174,'El Progreso',18),(1175,'Jocón',18),(1176,'Morazán',18),(1177,'Olanchito',18),(1178,'Santa Rita',18),(1179,'Sulaco',18),(1180,'Victoria',18),(1181,'Yorito',18);
+/*!40000 ALTER TABLE `municipios` ENABLE KEYS */;
+
+--
+-- Table structure for table `puntos_geograficos`
+--
+
+DROP TABLE IF EXISTS `puntos_geograficos`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `puntos_geograficos` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `nombre` varchar(100) NOT NULL,
+  `descripcion` text DEFAULT NULL,
+  `departamento_id` int(11) DEFAULT NULL,
+  `municipio_id` int(11) DEFAULT NULL,
+  `direccion` varchar(255) DEFAULT NULL,
+  `location` point NOT NULL,
+  `fecha_registro` datetime DEFAULT current_timestamp(),
+  `usuario_id` int(11) DEFAULT NULL,
+  `activo` tinyint(1) DEFAULT 1,
+  PRIMARY KEY (`id`),
+  KEY `departamento_id` (`departamento_id`),
+  KEY `municipio_id` (`municipio_id`),
+  KEY `usuario_id` (`usuario_id`),
+  SPATIAL KEY `location` (`location`),
+  CONSTRAINT `puntos_geograficos_ibfk_1` FOREIGN KEY (`departamento_id`) REFERENCES `departamentos` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `puntos_geograficos_ibfk_2` FOREIGN KEY (`municipio_id`) REFERENCES `municipios` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `puntos_geograficos_ibfk_3` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `puntos_geograficos`
+--
+
+/*!40000 ALTER TABLE `puntos_geograficos` DISABLE KEYS */;
+/*!40000 ALTER TABLE `puntos_geograficos` ENABLE KEYS */;
+
+--
+-- Table structure for table `roles`
+--
+
+DROP TABLE IF EXISTS `roles`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `roles` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `nombre` varchar(50) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `roles`
+--
+
+/*!40000 ALTER TABLE `roles` DISABLE KEYS */;
+INSERT INTO `roles` VALUES (1,'administrador'),(2,'operador'),(3,'supervisor');
+/*!40000 ALTER TABLE `roles` ENABLE KEYS */;
+
+--
+-- Table structure for table `subtipologias`
+--
+
+DROP TABLE IF EXISTS `subtipologias`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `subtipologias` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `nombre` varchar(100) NOT NULL,
+  `tipologia_id` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `tipologia_id` (`tipologia_id`),
+  CONSTRAINT `subtipologias_ibfk_1` FOREIGN KEY (`tipologia_id`) REFERENCES `tipologias` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=225 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `subtipologias`
+--
+
+/*!40000 ALTER TABLE `subtipologias` DISABLE KEYS */;
+INSERT INTO `subtipologias` VALUES (1,'Atropello',1),(2,'Choque',1),(3,'Colisión',1),(4,'Caída',1),(5,'Despiste',1),(6,'Volcamiento',1),(7,'Asistencia',2),(8,'Asistencia Psicológica',2),(9,'Ayuda Humanitaria',2),(10,'Covid-19',2),(11,'Eventos Públicos',2),(12,'Resguardo Policial / Presencia Policial',2),(13,'Alteración De Linderos',3),(14,'Conflicto Vecinal',3),(15,'Congestionamiento',3),(16,'Desalojo O Readecuacion/Cierre De Establecimiento',3),(17,'Invasión De Vía Pública',3),(18,'Ley Seca',3),(19,'Mendicidad',3),(20,'Negocios Clandestinos',3),(21,'Problemas De Agua Potable',3),(22,'Quema De Basura',3),(23,'Semáforo En Mal Estado',3),(24,'Semovientes',3),(25,'Tala De Árboles',3),(26,'Vehículo Abandonado',3),(27,'Vehículo En Mal Estado',3),(28,'Vehículos Mal Estacionados',3),(29,'Venta De Pólvora',3),(30,'Allanamiento De Domicilio',4),(31,'Amenazas',4),(32,'Chantaje',4),(33,'Conducción Temeraria',4),(34,'Contrabando',4),(35,'Delitos Ambientales',4),(36,'Delitos De Desobediencia',4),(37,'Delitos Contra Derechos Laborales',4),(38,'Desórdenes Públicos',4),(39,'Estragos',4),(40,'Exhibicionismo',4),(41,'Injurias Y Calumnias',4),(42,'Maltrato O Abandono Animal',4),(43,'Perturbación Del Orden',4),(44,'Quebrantamiento De Condena O Medida',4),(45,'Abandono Ancianos/Personas Con Discapacidad/Personas Enfermas',5),(46,'Bigamia',5),(47,'Delitos Contra La Libertad Religiosa / Práctica De Rituales',5),(48,'Discriminación',5),(49,'Hostigamiento Sexual',5),(50,'Maltrato Familiar',5),(51,'Otras Agresiones Sexuales',5),(52,'Tentativa De Violación',5),(53,'Trata De Personas',5),(54,'Trato Degradante',5),(55,'Violación Sexual',5),(56,'Violencia Doméstica',5),(57,'Abandono De Menores',6),(58,'Estupro',6),(59,'Explotación Laboral Infantil',6),(60,'Hostigamiento Sexual',6),(61,'Incesto',6),(62,'Incumplimiento Del Deber De Asistencia Y El Sustento',6),(63,'Inducción Al Abandono Del Hogar',6),(64,'Maltrato Familiar',6),(65,'Otras Agresiones Sexuales',6),(66,'Pornografía Infantil',6),(67,'Sustracción De Menores',6),(68,'Tentativa De Violación (Menores)',6),(69,'Trata De Personas (Menores)',6),(70,'Trato Degradante (Menores)',6),(71,'Violación Sexual Especial',6),(72,'Agiotaje',7),(73,'Daños',7),(74,'Estafa',7),(75,'Extorsión',7),(76,'Fraude',7),(77,'Hurto A Comercio',7),(78,'Hurto De Cosecha',7),(79,'Hurto A Personas',7),(80,'Hurto A Vehículo Automotor',7),(81,'Hurto De Arma De Fuego',7),(82,'Hurto De Vehículo',7),(83,'Hurto A Vivienda',7),(84,'Hurto De Ganado',7),(85,'Hurto',7),(86,'Loterías Y Juegos No Autorizados',7),(87,'Robo De Arma De Fuego',7),(88,'Robo A Comercio',7),(89,'Robo A Personas',7),(90,'Robo A Vehículo Automotor',7),(91,'Robo A Vivienda',7),(92,'Robo De Ganado',7),(93,'Robo De Vehículo Automotor',7),(94,'Robo',7),(95,'Tentativa De Hurto',7),(96,'Tentativa De Robo',7),(97,'Usura',7),(98,'Usurpación',7),(99,'Aborto',8),(100,'Amenazas A Muerte',8),(101,'Atentado',8),(102,'Femicidio',8),(103,'Inducción Y Auxilio Al Suicidio',8),(104,'Hallazgo De Feto/Bebé Humano',8),(105,'Homicidio',8),(106,'Tentativa De Homicidio',8),(107,'Lesiones',8),(108,'Parricidio',8),(109,'Secuestro',8),(110,'Privación Ilegal De La Libertad',8),(111,'Asociación Terrorista',8),(112,'Tortura',8),(113,'Derrumbes',9),(114,'Desbordamientos',9),(115,'Deslave',9),(116,'Fenómeno De Sequía',9),(117,'Inundaciones',9),(118,'Marejadas',9),(119,'Maremoto',9),(120,'Terremoto',9),(121,'Tromba Marina',9),(122,'Tsunami',9),(123,'Vientos Racheados',9),(124,'Emergencia Médica',10),(125,'Covid-19',10),(126,'Asesoria y Consulta Medica',10),(127,'Líneas Y Tendido Eléctrico',11),(128,'Embarcaciones',11),(129,'Estructural',11),(130,'Forestal',11),(131,'Vehicular',11),(132,'Zacatera',11),(133,'Abuso De Autoridad/Violación De Deberes',12),(134,'Activación De Alarmas',12),(135,'Amotinamiento',12),(136,'Asociación Ilícita',12),(137,'Búsqueda',12),(138,'Cohecho',12),(139,'Consumo De Droga',12),(140,'Desplazamiento Forzado',12),(141,'Disparos Por Arma De Fuego',12),(142,'Enfrentamiento Entre Grupos Delictivos',12),(143,'Falsificación De Documentos',12),(144,'Uso Indebido De Indumentaria Policial O Militar',12),(145,'Decomisos',12),(146,'Infracciones',12),(147,'Personas Desaparecidas',12),(148,'Persona Tendida En La Calle',12),(149,'Personas Detenidas Por Causas Desconocidas',12),(150,'Personas Sospechosas',12),(151,'Reten/Operativo',12),(152,'Requerimiento De Vehículo O Persona',12),(153,'Saturaciones',12),(154,'Seguimiento',12),(155,'Tenencia Y Porte Ilegal De Armas',12),(156,'Tráfico De Armas',12),(157,'Tráfico De Drogas',12),(158,'Tráfico Ilícito De Personas',12),(159,'Traslado De Personas Detenidas',12),(160,'Vehículos Sospechosos',12),(161,'Venta De Droga',12),(162,'Venta Y Consumo De Droga',12),(163,'Muerte En Incendio',13),(164,'Muerte Por Causas Naturales',13),(165,'Muerte Por Sumersión',13),(166,'Muerte Por Intoxicación',13),(167,'Suicidio',13),(168,'Muerte Por Atragantamiento',13),(169,'Muerte Por Causas Desconocidas',13),(170,'Muerte Por Aplastamiento Por Objeto Pesado',13),(171,'Muerte Por Caída',13),(172,'Muerte Por Electrocución',13),(173,'Animales Muertos',14),(174,'Animales Peligrosos',14),(175,'Extravío De Chapa De Una Autoridad',14),(176,'Extravío De Documentos Y Objetos Personales',14),(177,'Extravío De Arma De Fuego',14),(178,'Extravío De Placas Vehiculares',14),(179,'Fuga De Sustancias Peligrosas E Inflamables',14),(180,'Fumigación',14),(181,'Manifestaciones Pacíficas',14),(182,'Persona Extraviada',14),(183,'Problemas En El Tendido Eléctrico',14),(184,'Naufragio',14),(185,'Quema De Pólvora',14),(186,'Reporte Oficial De Día / Paramédico De Turno',14),(187,'Refuerzo Policial',14),(188,'Rescate Animal',14),(189,'Respuesta A Denuncia',14),(190,'Rescate A Personas',14),(191,'Abuso de Autoridad',15),(192,'Aglomeracion De Personas',15),(193,'Cambio Injustificado Del Lugar De Votacion',15),(194,'Coaccion Y Amenazas Electorales',15),(195,'Comprar O Vender Votos',15),(196,'Daños',15),(197,'Destruccion de Propaganda',15),(198,'Emergencia Medica',15),(199,'Estructura Criminal Cerca De Los Centros De Votacion',15),(200,'Extraccion De Votos Antes De La Verificacion Del Escrutinio',15),(201,'Falsificacion De Documentos Electorales',15),(202,'Impedir Revision De Urnas',15),(203,'Incendios',15),(204,'Irregularidad En Las Mesas Electorales',15),(205,'Perturbacion Del Orden',15),(206,'Retencion Material Electoral',15),(207,'Ventas De Bebidas Alcohólicas',15),(208,'Intento de suicidio',8),(209,'Reportes DNI',15),(210,'Seguimiento Medico',10),(211,'Retencion ilicita de cedula',16),(212,'Compra y venta de votos',16),(213,'Alteracion del orden en el proceso electoral',16),(214,'Abuso de autoridad electoral',16),(215,'Intimidacion, engaño y acoso electoral',16),(216,'Hurto o sabotaje al proceso electoral y de escrutinio',16),(217,'Fraude electoral',16),(218,'Destruccion de Propaganda',16),(219,'Violacion del Secreto de Voto',16),(220,'Campaña Electoral Ilegal',16),(221,'Atencion Medica',17),(222,'Atencion Psicologica',17),(223,'Asesoria Legal',17),(224,'Ayuda Humanitaria',17);
+/*!40000 ALTER TABLE `subtipologias` ENABLE KEYS */;
+
+--
+-- Table structure for table `subtipos_incidentes`
+--
+
+DROP TABLE IF EXISTS `subtipos_incidentes`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `subtipos_incidentes` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `subtipo_incidente` varchar(150) NOT NULL,
+  `tipos_incidentes_id` int(11) NOT NULL,
+  `estado` tinyint(4) NOT NULL DEFAULT 1,
+  PRIMARY KEY (`id`),
+  KEY `tipos_incidentes_id` (`tipos_incidentes_id`),
+  CONSTRAINT `subtipos_incidentes_ibfk_1` FOREIGN KEY (`tipos_incidentes_id`) REFERENCES `tipos_incidentes` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `subtipos_incidentes`
+--
+
+/*!40000 ALTER TABLE `subtipos_incidentes` DISABLE KEYS */;
+/*!40000 ALTER TABLE `subtipos_incidentes` ENABLE KEYS */;
+
+--
+-- Table structure for table `ticket_despacho`
+--
+
+DROP TABLE IF EXISTS `ticket_despacho`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `ticket_despacho` (
+  `ticket_id` varchar(50) NOT NULL,
+  `despacho_id` int(11) NOT NULL,
+  PRIMARY KEY (`ticket_id`,`despacho_id`),
+  KEY `despacho_id` (`despacho_id`),
+  CONSTRAINT `ticket_despacho_ibfk_1` FOREIGN KEY (`ticket_id`) REFERENCES `tickets` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `ticket_despacho_ibfk_2` FOREIGN KEY (`despacho_id`) REFERENCES `despachos` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `ticket_despacho`
+--
+
+/*!40000 ALTER TABLE `ticket_despacho` DISABLE KEYS */;
+/*!40000 ALTER TABLE `ticket_despacho` ENABLE KEYS */;
+
+--
+-- Table structure for table `ticket_unidad`
+--
+
+DROP TABLE IF EXISTS `ticket_unidad`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `ticket_unidad` (
+  `ticket_id` varchar(50) NOT NULL,
+  `unidad_id` int(11) NOT NULL,
+  PRIMARY KEY (`ticket_id`,`unidad_id`),
+  KEY `unidad_id` (`unidad_id`),
+  CONSTRAINT `ticket_unidad_ibfk_1` FOREIGN KEY (`ticket_id`) REFERENCES `tickets` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `ticket_unidad_ibfk_2` FOREIGN KEY (`unidad_id`) REFERENCES `unidades` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `ticket_unidad`
+--
+
+/*!40000 ALTER TABLE `ticket_unidad` DISABLE KEYS */;
+/*!40000 ALTER TABLE `ticket_unidad` ENABLE KEYS */;
+
+--
+-- Table structure for table `tickets`
+--
+
+DROP TABLE IF EXISTS `tickets`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `tickets` (
+  `id` varchar(50) NOT NULL,
+  `usuario_id` int(11) DEFAULT NULL,
+  `fecha_hora` timestamp NOT NULL DEFAULT current_timestamp(),
+  `regional` varchar(50) DEFAULT NULL,
+  `departamento_id` int(11) DEFAULT NULL,
+  `municipio_id` int(11) DEFAULT NULL,
+  `location` point NOT NULL,
+  `tipologia_id` int(11) DEFAULT NULL,
+  `subtipologia_id` int(11) DEFAULT NULL,
+  `descripcion` text DEFAULT NULL,
+  `nota_respaldo` text DEFAULT NULL,
+  `registro` text DEFAULT NULL,
+  `mando` text DEFAULT NULL,
+  `nota_final` text DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `usuario_id` (`usuario_id`),
+  KEY `departamento_id` (`departamento_id`),
+  KEY `municipio_id` (`municipio_id`),
+  KEY `tipologia_id` (`tipologia_id`),
+  KEY `subtipologia_id` (`subtipologia_id`),
+  SPATIAL KEY `location` (`location`),
+  CONSTRAINT `tickets_ibfk_1` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `tickets_ibfk_2` FOREIGN KEY (`departamento_id`) REFERENCES `departamentos` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `tickets_ibfk_3` FOREIGN KEY (`municipio_id`) REFERENCES `municipios` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `tickets_ibfk_4` FOREIGN KEY (`tipologia_id`) REFERENCES `tipologias` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `tickets_ibfk_5` FOREIGN KEY (`subtipologia_id`) REFERENCES `subtipologias` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `tickets`
+--
+
+/*!40000 ALTER TABLE `tickets` DISABLE KEYS */;
+INSERT INTO `tickets` VALUES ('TC202509191ca9ab127b',NULL,'2025-09-20 06:00:00','Tegucigalpa',13,1082,0x000000000101000000F54D12B5EA212C40F1C782396FCA55C0,13,168,'brgntttttmtfg','Nonenfng','Nonennae','Nonegnenen','Nonaeneaatne'),('TC20250919b4ac319b22',11,'2025-09-19 06:00:00','Tegucigalpa',13,1083,0x000000000101000000F54D12B5EA212C40F1C782396FCA55C0,13,171,'brgntttttmtfg','Nonebasbabcabdds','None','NonevsfgWFVBEBE','None'),('TC20250919c5d178b4ff',11,'2025-09-19 06:00:00','Tegucigalpa',10,1030,0x000000000101000000F54D12B5EA212C40F1C782396FCA55C0,14,188,'brgntttttmtfg','None','None','Hola','Hola');
+/*!40000 ALTER TABLE `tickets` ENABLE KEYS */;
+
+--
+-- Table structure for table `tipologias`
+--
+
+DROP TABLE IF EXISTS `tipologias`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `tipologias` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `nombre` varchar(100) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `tipologias`
+--
+
+/*!40000 ALTER TABLE `tipologias` DISABLE KEYS */;
+INSERT INTO `tipologias` VALUES (1,'Accidente de Transito'),(2,'Asistencia'),(3,'Casos de alcadia'),(4,'Delitos Comunes'),(5,'Delitos Contra la Mujer U hombre'),(6,'Delitos Contra la niñez Adolescencia'),(7,'Delitos Contra la Propiedad'),(8,'Delitos Contra la Vida'),(9,'Desastres Naturales'),(10,'Emergencia Medica'),(11,'Incendio'),(12,'Investigacion'),(13,'Pandillas'),(14,'Rescate'),(15,'Riña'),(16,'Seguridad Nacional'),(17,'Violencia Doméstica'),(18,'Otros');
+/*!40000 ALTER TABLE `tipologias` ENABLE KEYS */;
+
+--
+-- Table structure for table `tipos_incidentes`
+--
+
+DROP TABLE IF EXISTS `tipos_incidentes`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `tipos_incidentes` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `tipo_incidente` varchar(150) NOT NULL,
+  `estado` tinyint(4) NOT NULL DEFAULT 1,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `tipos_incidentes`
+--
+
+/*!40000 ALTER TABLE `tipos_incidentes` DISABLE KEYS */;
+/*!40000 ALTER TABLE `tipos_incidentes` ENABLE KEYS */;
+
+--
+-- Table structure for table `unidades`
+--
+
+DROP TABLE IF EXISTS `unidades`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `unidades` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `nombre` varchar(100) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `unidades`
+--
+
+/*!40000 ALTER TABLE `unidades` DISABLE KEYS */;
+INSERT INTO `unidades` VALUES (1,'Patrulla PN'),(2,'Ambulancia CR'),(3,'Motorizada PN'),(4,'Transito-T'),(5,'HRB Incendio'),(6,'HRB Apoyo'),(7,'Mensaje Enviado'),(8,'Moto ambulancia'),(9,'Asistencia psicologica'),(10,'PatrullaPM'),(11,'Ambulancia UME'),(12,'Motorizada PM'),(13,'Transito-movil'),(14,'HRB Rescate'),(15,'HRB Ambulancia'),(16,'Patrullaje a pie'),(17,'Ambulancia UREM');
+/*!40000 ALTER TABLE `unidades` ENABLE KEYS */;
+
+--
+-- Table structure for table `usuario_rol`
+--
+
+DROP TABLE IF EXISTS `usuario_rol`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `usuario_rol` (
+  `usuario_id` int(11) NOT NULL,
+  `rol_id` int(11) NOT NULL,
+  PRIMARY KEY (`usuario_id`,`rol_id`),
+  KEY `rol_id` (`rol_id`),
+  CONSTRAINT `usuario_rol_ibfk_1` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `usuario_rol_ibfk_2` FOREIGN KEY (`rol_id`) REFERENCES `roles` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `usuario_rol`
+--
+
+/*!40000 ALTER TABLE `usuario_rol` DISABLE KEYS */;
+INSERT INTO `usuario_rol` VALUES (7,1),(8,1),(11,1),(12,2),(13,3);
+/*!40000 ALTER TABLE `usuario_rol` ENABLE KEYS */;
+
+--
+-- Table structure for table `usuarios`
+--
+
+DROP TABLE IF EXISTS `usuarios`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `usuarios` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `nombre` varchar(100) NOT NULL,
+  `usuario` varchar(50) NOT NULL,
+  `contraseña` varchar(255) NOT NULL,
+  `activo` tinyint(1) DEFAULT 1,
+  `rol` varchar(50) DEFAULT 'call center',
+  `regional` varchar(100) NOT NULL COMMENT 'Regional o zona geográfica del usuario (campo obligatorio)',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `usuario` (`usuario`)
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `usuarios`
+--
+
+/*!40000 ALTER TABLE `usuarios` DISABLE KEYS */;
+INSERT INTO `usuarios` VALUES (7,'Jony','administrador','scrypt:32768:8:1$KwtduY6b2sZjZKUv$c6049a47b87f147cf1e5b7380bb3b8da49912ba3481f3a46fe67f51161b20e77d96c34a77f9ed439462e442bca7a1e8bfdbff1911ce271e10098afadc8672eb3',1,'call center',''),(8,'Osorio','Cristhofer','scrypt:32768:8:1$vesmjA53ggKtSNjk$d067aba4b56e35f024d858293e486df3f3c698252437d0e134c6266f4176d0b88ca55fdbf2af7aefe7c9323c4712551cef8c9c44d8381b60141eb0d475131a38',0,'administrador',''),(11,'admin','admin','scrypt:32768:8:1$hlugWl3Eql5uDcNA$22e3ec919a2e53933950a968c1825194174a35bd4e8130d292aa608b824fd1ca5ebad7e4ff4584b077cf1043de1558f1d7c7137faad30acaba4080784d9dee5f',1,'call center','Tegucigalpa'),(12,'Luis','luis','scrypt:32768:8:1$7GaNENyyMn8fbzXr$36b32492a829768b49049274bb0e6810a7eb7bc1acabe27b60166dc06eec892033fc9521a6a3aad15cf2e73735d186292599af083efc85bcdd4e2e90a0b4d4d1',1,'call center','Norte'),(13,'johan','johan','scrypt:32768:8:1$Oaixz5uWwUphoUdP$eec8f0b0818635caafc12bca91f60614f94146ab2364619d3225f8217e8916d1539516d106849f78ab2fc04c785bd0d95dd41e89007fa876ff0dacaa0454711c',0,'call center','');
+/*!40000 ALTER TABLE `usuarios` ENABLE KEYS */;
+
+--
+-- Dumping routines for database 'proyecto'
+--
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2025-09-23 16:45:34
