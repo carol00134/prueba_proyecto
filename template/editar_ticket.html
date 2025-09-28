@@ -2,7 +2,7 @@
 
 {% block title %}Editar Ticket - Sistema{% endblock %}
 
-{% block page_title %}Editar Ticket #{{ ticket.id if ticket else '' }}{% endblock %}
+
 
 {% block back_button %}
 <a href="/tickets" class="btn-back">
@@ -11,61 +11,8 @@
 {% endblock %}
 
 {% block content %}
-<style>
-.form-container {
-  background: #fff;
-  border-radius: 12px;
-  padding: 2rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  margin-bottom: 2rem;
-}
+<link rel="stylesheet" href="{{ url_for('static', filename='editar_ticket.css') }}">
 
-.form-label {
-  font-weight: 600;
-  color: #374151;
-  margin-bottom: 0.5rem;
-}
-
-.form-control, .form-select {
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  padding: 0.5rem;
-  font-size: 0.875rem;
-}
-
-.btn {
-  padding: 0.5rem 1rem;
-  font-size: 0.875rem;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-sm {
-  padding: 0.25rem 0.5rem;
-  font-size: 0.75rem;
-  line-height: 1.5;
-}
-
-.btn-primary { background: #3b82f6; color: white; }
-.btn-secondary { background: #6b7280; color: white; }
-.btn-warning { background: #f59e0b; color: white; }
-
-.page-header {
-  display: flex;
-  justify-content: between;
-  align-items: center;
-  margin-bottom: 2rem;
-  padding-bottom: 1rem;
-  border-bottom: 2px solid #e5e7eb;
-}
-
-.btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-}
-</style>
 
 <div class="container-fluid px-4">
   <div class="page-header">
@@ -231,7 +178,7 @@
       </div>
 
       <div class="text-center mt-4">
-        <button type="submit" class="btn btn-primary btn-sm" style="padding: 4px 8px; font-size: 0.75rem; width: auto; margin-right: 8px;">
+        <button type="submit" class="btn btn-primary btn-sm btn-xs">
           <i class="fas fa-save me-1"></i>Actualizar
         </button>
         <a href="/tickets" class="btn btn-secondary btn-sm">

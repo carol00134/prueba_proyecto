@@ -18,7 +18,7 @@ class UsuariosController:
             nombre = request.form.get('nombre')
             rol = request.form.get('rol')
             estado = request.form.get('estado', '1')  # Por defecto activo
-            regional = request.form.get('regional', '').strip()  # Campo opcional
+            regional = request.form.get('regional', '').strip()  # Campo obligatorio
             activo = bool(int(estado))  # Convertir a boolean
             
             if accion == 'agregar':
@@ -32,6 +32,8 @@ class UsuariosController:
                         error = 'El nombre completo es obligatorio'
                     elif not rol or not rol.strip():
                         error = 'El rol es obligatorio. Debe seleccionar un rol para el usuario.'
+                    elif not regional or not regional.strip():
+                        error = 'La regional es obligatoria. Debe especificar la regional del usuario.'
                     else:
                         # Verificar que el rol existe antes de crear el usuario
                         cur.execute("SELECT id FROM roles WHERE nombre = %s", (rol,))
@@ -51,7 +53,7 @@ class UsuariosController:
                                     
                                     # Insertar usuario
                                     cur.execute("INSERT INTO usuarios (nombre, usuario, contraseña, activo, regional) VALUES (%s, %s, %s, %s, %s)", 
-                                               (nombre, username, hashed_password, activo, regional or None))
+                                               (nombre, username, hashed_password, activo, regional))
                                     
                                     # Obtener el ID del usuario recién creado
                                     usuario_id = cur.lastrowid
@@ -80,6 +82,8 @@ class UsuariosController:
                         error = 'El nombre completo es obligatorio'
                     elif not rol or not rol.strip():
                         error = 'El rol es obligatorio. Debe seleccionar un rol para el usuario.'
+                    elif not regional or not regional.strip():
+                        error = 'La regional es obligatoria. Debe especificar la regional del usuario.'
                     else:
                         # Verificar que el rol existe
                         cur.execute("SELECT id FROM roles WHERE nombre = %s", (rol,))
@@ -116,10 +120,10 @@ class UsuariosController:
                                     if password and password.strip():
                                         hashed_password = generate_password_hash(password)
                                         cur.execute("UPDATE usuarios SET nombre = %s, contraseña = %s, activo = %s, regional = %s WHERE usuario = %s", 
-                                                   (nombre, hashed_password, activo, regional or None, username))
+                                                   (nombre, hashed_password, activo, regional, username))
                                     else:
                                         cur.execute("UPDATE usuarios SET nombre = %s, activo = %s, regional = %s WHERE usuario = %s", 
-                                                   (nombre, activo, regional or None, username))
+                                                   (nombre, activo, regional, username))
                                     
                                     # Obtener el ID del usuario
                                     cur.execute("SELECT id FROM usuarios WHERE usuario = %s", (username,))

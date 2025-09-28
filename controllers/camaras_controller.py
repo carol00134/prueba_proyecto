@@ -1,4 +1,4 @@
-from flask import render_template, request, jsonify
+from flask import render_template, request, jsonify, session
 from config import mysql
 
 class CamarasController:
@@ -132,6 +132,19 @@ class CamarasController:
         """)
         camaras = cur.fetchall()
         
+        # Obtener información del usuario logueado
+        usuario_logueado = session.get('usuario')
+        usuario_actual = None
+        if usuario_logueado:
+            cur.execute("""
+                SELECT u.id, u.nombre, u.usuario, r.nombre as rol
+                FROM usuarios u
+                LEFT JOIN usuario_rol ur ON u.id = ur.usuario_id
+                LEFT JOIN roles r ON ur.rol_id = r.id
+                WHERE u.usuario = %s
+            """, (usuario_logueado,))
+            usuario_actual = cur.fetchone()
+        
         # Obtener usuarios para el dropdown
         cur.execute("SELECT id, nombre, usuario FROM usuarios ORDER BY nombre")
         usuarios = cur.fetchall()
@@ -145,6 +158,7 @@ class CamarasController:
         return render_template('camaras.html',
                              camaras=camaras,
                              usuarios=usuarios,
+                             usuario_actual=usuario_actual,
                              roles=roles,
                              error=error,
                              success=success)

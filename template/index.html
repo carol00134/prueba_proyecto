@@ -2,85 +2,17 @@
 
 {% block title %}Dashboard - Sistema de Gestión{% endblock %}
 
+{% block page_title %}<i class="fas fa-tachometer-alt me-2"></i>Dashboard del Sistema{% endblock %}
+
 {% block back_button %}
 
 {% endblock %}
 
 {% block content %}
-<style>
-.dashboard-card {
-  background: #fff;
-  border-radius: 12px;
-  padding: 2rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  margin-bottom: 2rem;
-  border: none;
-}
+<link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
 
-.stat-icon {
-  font-size: 2rem;
-  margin-bottom: 1rem;
-}
-
-.stat-number {
-  font-size: 2.5rem;
-  font-weight: bold;
-  margin-bottom: 0.5rem;
-}
-
-.stat-label {
-  color: #6b7280;
-  font-size: 0.9rem;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.status-indicator {
-  display: inline-block;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  margin-right: 8px;
-}
-
-.status-online {
-  background-color: #10b981;
-}
-
-.feature-card {
-  background: #fff;
-  border-radius: 12px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  transition: transform 0.2s, box-shadow 0.2s;
-  text-decoration: none;
-  color: inherit;
-  border: none;
-  height: 100%;
-}
-
-.feature-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-  color: inherit;
-  text-decoration: none;
-}
-
-.feature-icon {
-  font-size: 2.5rem;
-  margin-bottom: 1rem;
-  color: #6366f1;
-}
-</style>
 
 <div class="container-fluid">
-  <div class="row">
-    <div class="col-12">
-      <h1 class="mb-4">
-        <i class="fas fa-tachometer-alt me-2"></i>Dashboard del Sistema
-      </h1>
-    </div>
-  </div>
 
 <!------------------------------------------Estadsticas usuarios------------------------------------>>
   <div class="row mb-4">
@@ -106,19 +38,7 @@
       </div>
     </div>
     
-    <div class="col-lg-3 col-md-6 mb-3">
-      <div class="dashboard-card text-center">
-        <div class="stat-icon text-success">
-          <i class="fas fa-circle"></i>
-        </div>
-        <div class="stat-label">Estado del Sistema</div>
-        <div class="mt-2">
-          <span class="status-indicator status-online"></span>
-          <span class="text-success">{{ estado_bd }}</span>
-        </div>
-        <small class="text-muted">Última actualización: {{ hora_actual.strftime('%H:%M:%S') if hora_actual else 'N/A' }}</small>
-      </div>
-    </div>
+
   </div>
 
   <div class="row">
@@ -154,7 +74,7 @@
     </div>
     
     <div class="col-lg-4 col-md-6 mb-3">
-      <a href="{{ url_for('tickets_routes.tickets') }}" class="feature-card d-block">
+      <a href="{{ url_for('tickets_routes.agregar_ticket') }}" class="feature-card d-block">
         <div class="text-center">
           <div class="feature-icon">
             <i class="fas fa-file-alt"></i>
@@ -174,7 +94,6 @@
           </div>
           <h5>Lista de Tickets</h5>
           <p class="text-muted mb-2">Visualiza y edita tickets existentes</p>
-          <small class="text-muted">Consulta, filtra, edita y elimina tickets del sistema.</small>
         </div>
       </a>
     </div>
@@ -186,7 +105,7 @@
             <i class="fas fa-video"></i>
           </div>
           <h5>Cámaras</h5>
-          <p class="text-muted mb-2">Gestiona catálogos del sistema</p>
+          <p class="text-muted mb-2">Gestiona camaras del sistema</p>
         </div>
       </a>
     </div>

@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, jsonify
+from flask import render_template, request, redirect, jsonify, session
 import uuid
 import datetime
 from config import mysql
@@ -17,6 +17,19 @@ class TicketsController:
         """Show form to add ticket"""
         try:
             cur = mysql.connection.cursor()
+            
+            # Obtener información del usuario logueado
+            usuario_logueado = session.get('usuario')
+            usuario_actual = None
+            if usuario_logueado:
+                cur.execute("""
+                    SELECT u.id, u.nombre, u.usuario, r.nombre as rol
+                    FROM usuarios u
+                    LEFT JOIN usuario_rol ur ON u.id = ur.usuario_id
+                    LEFT JOIN roles r ON ur.rol_id = r.id
+                    WHERE u.usuario = %s
+                """, (usuario_logueado,))
+                usuario_actual = cur.fetchone()
             
             # Obtener usuarios
             cur.execute("SELECT id, nombre, usuario FROM usuarios ORDER BY nombre")
@@ -48,6 +61,7 @@ class TicketsController:
             
             return render_template('agregar_ticket.html', 
                                  usuarios=usuarios,
+                                 usuario_actual=usuario_actual,
                                  departamentos=departamentos, 
                                  tipologias=tipologias,
                                  unidades=unidades,
@@ -74,13 +88,15 @@ class TicketsController:
                        tip.nombre as tipologia_nombre,
                        stip.nombre as subtipologia_nombre,
                        u.nombre as usuario_nombre,
-                       u.rol as usuario_rol
+                       r.nombre as usuario_rol
                 FROM tickets t
                 LEFT JOIN departamentos d ON t.departamento_id = d.id
                 LEFT JOIN municipios m ON t.municipio_id = m.id
                 LEFT JOIN tipologias tip ON t.tipologia_id = tip.id
                 LEFT JOIN subtipologias stip ON t.subtipologia_id = stip.id
                 LEFT JOIN usuarios u ON t.usuario_id = u.id
+                LEFT JOIN usuario_rol ur ON u.id = ur.usuario_id
+                LEFT JOIN roles r ON ur.rol_id = r.id
                 WHERE t.id = %s
             """, (ticket_id,))
             ticket = cur.fetchone()
@@ -257,7 +273,7 @@ class TicketsController:
                 tip.nombre as tipologia_nombre,
                 stip.nombre as subtipologia_nombre,
                 CONCAT(u.nombre) as usuario_nombre,
-                u.rol as usuario_rol,
+                r.nombre as usuario_rol,
                 t.departamento_id as id_departamento, t.municipio_id as id_municipio, 
                 t.tipologia_id as id_tipologia, t.subtipologia_id as id_subtipologia, 
                 t.usuario_id as id_usuario
@@ -267,6 +283,8 @@ class TicketsController:
             LEFT JOIN tipologias tip ON t.tipologia_id = tip.id
             LEFT JOIN subtipologias stip ON t.subtipologia_id = stip.id
             LEFT JOIN usuarios u ON t.usuario_id = u.id
+            LEFT JOIN usuario_rol ur ON u.id = ur.usuario_id
+            LEFT JOIN roles r ON ur.rol_id = r.id
             ORDER BY t.fecha_hora DESC
             """)
             tickets = cur.fetchall()
@@ -334,7 +352,7 @@ class TicketsController:
                 tip.nombre as tipologia,
                 stip.nombre as subtipologia,
                 u.nombre as usuario,
-                u.rol as usuario_rol,
+                r.nombre as usuario_rol,
                 t.mando as mando_nombre
             FROM tickets t
             LEFT JOIN departamentos d ON t.departamento_id = d.id
@@ -342,6 +360,8 @@ class TicketsController:
             LEFT JOIN tipologias tip ON t.tipologia_id = tip.id
             LEFT JOIN subtipologias stip ON t.subtipologia_id = stip.id
             LEFT JOIN usuarios u ON t.usuario_id = u.id
+            LEFT JOIN usuario_rol ur ON u.id = ur.usuario_id
+            LEFT JOIN roles r ON ur.rol_id = r.id
             WHERE t.id = %s
             """, (ticket_id,))
             
@@ -429,13 +449,15 @@ class TicketsController:
                        stip.nombre as subtipologia_nombre,
                        u.nombre as usuario_nombre,
                        u.usuario as usuario_login,
-                       u.rol as usuario_rol
+                       r.nombre as usuario_rol
                 FROM tickets t
                 LEFT JOIN departamentos d ON t.departamento_id = d.id
                 LEFT JOIN municipios m ON t.municipio_id = m.id
                 LEFT JOIN tipologias tip ON t.tipologia_id = tip.id
                 LEFT JOIN subtipologias stip ON t.subtipologia_id = stip.id
                 LEFT JOIN usuarios u ON t.usuario_id = u.id
+                LEFT JOIN usuario_rol ur ON u.id = ur.usuario_id
+                LEFT JOIN roles r ON ur.rol_id = r.id
                 WHERE t.id = %s
             """, (ticket_id,))
             ticket = cur.fetchone()

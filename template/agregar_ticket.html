@@ -2,7 +2,7 @@
 
 {% block title %}Agregar Ticket - Sistema{% endblock %}
 
-{% block page_title %}Agregar Nuevo Ticket{% endblock %}
+
 
 {% block back_button %}
 <a href="/tickets" class="btn-back">
@@ -11,145 +11,8 @@
 {% endblock %}
 
 {% block content %}
-<style>
-.form-container {
-  background: #fff;
-  border-radius: 12px;
-  padding: 2rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  margin-bottom: 2rem;
-}
+<link rel="stylesheet" href="{{ url_for('static', filename='agregar_ticket.css') }}">
 
-.form-label {
-  font-weight: 600;
-  color: #374151;
-  margin-bottom: 0.5rem;
-}
-
-.form-control, .form-select {
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  padding: 0.5rem;
-  font-size: 0.875rem;
-}
-
-.btn {
-  padding: 0.5rem 1rem;
-  font-size: 0.875rem;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-sm {
-  padding: 0.25rem 0.5rem;
-  font-size: 0.75rem;
-  line-height: 1.5;
-}
-
-.btn-primary { background: #3b82f6; color: white; }
-.btn-secondary { background: #6b7280; color: white; }
-.btn-success { background: #10b981; color: white; }
-
-.page-header {
-  display: flex;
-  justify-content: between;
-  align-items: center;
-  margin-bottom: 2rem;
-  padding-bottom: 1rem;
-  border-bottom: 2px solid #e5e7eb;
-}
-
-.btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-}
-
-.checkbox-group {
-  background: #fafafa;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 0.5rem;
-  padding: 0.75rem !important;
-}
-
-.checkbox-group .form-check {
-  margin-bottom: 0.5rem;
-  padding: 0.25rem 0;
-  break-inside: avoid;
-}
-
-.checkbox-group .form-check:last-child {
-  margin-bottom: 0;
-}
-
-.checkbox-group .form-check-label {
-  font-size: 0.875rem;
-  cursor: pointer;
-  margin-left: 0.25rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 180px;
-  display: inline-block;
-}
-
-.checkbox-group .form-check-input {
-  margin-top: 0.125rem;
-  flex-shrink: 0;
-}
-
-/* Alineación de campos del formulario */
-.row {
-  align-items: start !important;
-  display: flex !important;
-}
-
-.row .col-md-4 {
-  display: flex !important;
-  flex-direction: column !important;
-  flex: 1 !important;
-  padding: 0 15px !important;
-  width: 33.333333% !important;
-  max-width: 33.333333% !important;
-  min-width: 33.333333% !important;
-}
-
-.row .col-md-6 {
-  display: flex !important;
-  flex-direction: column !important;
-  flex: 1 !important;
-  padding: 0 15px !important;
-}
-
-.row .col-md-4 .mb-3,
-.row .col-md-6 .mb-3 {
-  height: 100% !important;
-  display: flex !important;
-  flex-direction: column !important;
-  min-height: 80px !important;
-  width: 100% !important;
-}
-
-.row .col-md-4 .form-label,
-.row .col-md-6 .form-label {
-  margin-bottom: 0.5rem !important;
-  height: 20px !important;
-  line-height: 20px !important;
-}
-
-.row .col-md-4 .form-control,
-.row .col-md-4 .form-select,
-.row .col-md-6 .form-control,
-.row .col-md-6 .form-select {
-  flex: 1 !important;
-  height: 38px !important;
-  margin-top: auto !important;
-  width: 100% !important;
-  box-sizing: border-box !important;
-}
-</style>
 
 <div class="container-fluid px-4">
   <div class="page-header">
@@ -179,7 +42,11 @@
             <select class="form-select" id="id_usuario" name="id_usuario" required>
               <option value="">Seleccione un usuario</option>
               {% for usuario in usuarios %}
-              <option value="{{ usuario.id }}">{{ usuario.nombre }} ({{ usuario.usuario }})</option>
+              <option value="{{ usuario.id }}" 
+                      {% if usuario_actual and usuario.id == usuario_actual.id %}selected{% endif %}>
+                {{ usuario.nombre }} ({{ usuario.usuario }})
+                {% if usuario_actual and usuario.id == usuario_actual.id %} - Logueado{% endif %}
+              </option>
               {% endfor %}
             </select>
           </div>
@@ -288,7 +155,7 @@
         <div class="col-md-12">
           <div class="mb-3">
             <label class="form-label">Despachos</label>
-            <div class="checkbox-group" style="max-height: 200px; overflow-y: auto; border: 1px solid #d1d5db; border-radius: 6px;">
+            <div class="checkbox-group checkbox-scroll">
               {% for despacho in despachos %}
               <div class="form-check">
                 <input class="form-check-input" type="checkbox" id="despacho_{{ despacho.id }}" name="despachos" value="{{ despacho.id }}">
@@ -306,7 +173,7 @@
         <div class="col-md-12">
           <div class="mb-3">
             <label class="form-label">Unidades</label>
-            <div class="checkbox-group" style="max-height: 200px; overflow-y: auto; border: 1px solid #d1d5db; border-radius: 6px;">
+            <div class="checkbox-group checkbox-scroll">
               {% for unidad in unidades %}
               <div class="form-check">
                 <input class="form-check-input" type="checkbox" id="unidad_{{ unidad.id }}" name="unidades" value="{{ unidad.id }}">
@@ -321,10 +188,10 @@
       </div>
 
       <div class="text-center mt-4">
-        <button type="submit" class="btn btn-success btn-sm me-2" style="width: auto; padding: 0.375rem 1rem;">
+        <button type="submit" class="btn btn-success btn-sm me-2 btn-submit">
           <i class="fas fa-save me-1"></i>Crear Ticket
         </button>
-        <a href="/tickets" class="btn btn-secondary btn-sm" style="width: auto; padding: 0.375rem 1rem;">
+        <a href="/tickets" class="btn btn-secondary btn-sm btn-submit">
           <i class="fas fa-times me-1"></i>Cancelar
         </a>
       </div>

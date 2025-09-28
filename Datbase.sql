@@ -1,3 +1,4 @@
+-- Active: 1733386659257@@127.0.0.1@3306@proyecto
 -- Tabla de usuarios
 CREATE TABLE usuarios (
     id INT AUTO_INCREMENT PRIMARY KEY,

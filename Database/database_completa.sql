@@ -38,6 +38,8 @@ SET FOREIGN_KEY_CHECKS = 1;
 -- =====================================================
 
 -- Tabla de roles
+
+
 CREATE TABLE roles (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(50) NOT NULL UNIQUE
@@ -745,3 +747,8 @@ SELECT
 -- Última modificación: Campo regional obligatorio agregado
 -- Total de tablas: 14
 -- =====================================================
+
+
+ALTER TABLE usuarios AUTO_INCREMENT = 1;
+
+INSERT INTO usuarios (usuario, contraseña, nombre, activo) VALUES ('admin', 'scrypt:32768:8:1$kUS26PJ9fRBibWbU$931377aa48e46e1d0a943a99d0ece7f94827f8fe47a6d6b8a003ffae43efc7282d883a4f2066978e5e88843eaa9fb5445ddd67b1dd31f77d38468f039c399455', 'Administrador', 1);
