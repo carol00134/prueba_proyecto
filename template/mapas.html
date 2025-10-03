@@ -1,9 +1,8 @@
-
 {% extends "base.html" %}
 
-{% block title %}Mapas - Sistema{% endblock %}
+{% block title %}Gestión de Mapas - Sistema{% endblock %}
 
-
+{% block page_title %}<i class="fas fa-map me-2"></i>Gestión de Mapas{% endblock %}
 
 {% block back_button %}
 <a href="/" class="btn-back">
@@ -12,13 +11,21 @@
 {% endblock %}
 
 {% block content %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+<style>
+  #map { height: 180px; }
+</style>
 <div class="container-fluid px-4">
-  <h2>Mapa de Calor</h2>
-  <p class="text-muted">Visualización de datos geográficos</p>
-  
   <div class="alert alert-info">
     <i class="fas fa-info-circle me-2"></i>
     El contenido del mapa se implementará próximamente.
+    
   </div>
+
+  <div id="map"></div>
+
+  
 </div>
 {% endblock %}

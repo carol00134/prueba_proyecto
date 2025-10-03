@@ -10,6 +10,7 @@ class CamarasController:
         
         if request.method == 'POST':
             accion = request.form.get('accion')
+            print(f"DEBUG: Acción recibida: '{accion}'")  # Log para debug
             
             cur = mysql.connection.cursor()
             
@@ -26,6 +27,8 @@ class CamarasController:
                     cambio_password = request.form.get('cambio_password')
                     usuario_id = request.form.get('usuario_id') if request.form.get('usuario_id') else None
                     rol_id = request.form.get('rol_id') if request.form.get('rol_id') else None
+                    
+                    print(f"DEBUG: Agregando cámara con ID: '{id_camaras}'")  # Log para debug
                     
                     # Validar campos obligatorios
                     if not id_camaras:
@@ -66,6 +69,7 @@ class CamarasController:
                 elif accion == 'editar':
                     # Obtener datos del formulario para editar
                     id_camaras = request.form.get('id_camaras', '').strip()
+                    id_camaras_original = request.form.get('id_camaras_original', '').strip()  # ID original antes de la edición
                     correo = request.form.get('correo', '').strip()
                     nombre = request.form.get('nombre', '').strip()
                     estado = request.form.get('estado')
@@ -76,6 +80,8 @@ class CamarasController:
                     usuario_id = request.form.get('usuario_id') if request.form.get('usuario_id') else None
                     rol_id = request.form.get('rol_id') if request.form.get('rol_id') else None
                     
+                    print(f"DEBUG: Editando cámara. ID original: '{id_camaras_original}', ID nuevo: '{id_camaras}'")  # Log para debug
+                    
                     # Validar campos obligatorios
                     if not id_camaras:
                         error = 'El ID de la cámara es obligatorio'
@@ -84,22 +90,30 @@ class CamarasController:
                     elif not nombre:
                         error = 'El nombre es obligatorio'
                     else:
-                        # Actualizar cámara existente
-                        cur.execute("""
-                            UPDATE camaras SET 
-                                correo = %s, nombre = %s, estado = %s, regional = %s,
-                                fecha_creacion = %s, fecha_ultima_modificacion = %s, 
-                                cambio_password = %s, usuario_id = %s, rol_id = %s
-                            WHERE id_camaras = %s
-                        """, (correo, nombre, estado, 
-                             regional if regional else None,
-                             fecha_creacion if fecha_creacion else None,
-                             fecha_ultima_modificacion if fecha_ultima_modificacion else None,
-                             cambio_password if cambio_password else None,
-                             usuario_id, rol_id, id_camaras))
+                        # Si el ID cambió, verificar que el nuevo ID no exista en otra cámara
+                        if id_camaras != id_camaras_original:
+                            cur.execute("SELECT COUNT(*) as count FROM camaras WHERE id_camaras = %s", (id_camaras,))
+                            result = cur.fetchone()
+                            if result['count'] > 0:
+                                error = f'Ya existe una cámara con el ID "{id_camaras}"'
                         
-                        mysql.connection.commit()
-                        success = f'Cámara "{nombre}" actualizada exitosamente'
+                        if not error:
+                            # Actualizar cámara existente usando el ID original
+                            cur.execute("""
+                                UPDATE camaras SET 
+                                    id_camaras = %s, correo = %s, nombre = %s, estado = %s, regional = %s,
+                                    fecha_creacion = %s, fecha_ultima_modificacion = %s, 
+                                    cambio_password = %s, usuario_id = %s, rol_id = %s
+                                WHERE id_camaras = %s
+                            """, (id_camaras, correo, nombre, estado, 
+                                 regional if regional else None,
+                                 fecha_creacion if fecha_creacion else None,
+                                 fecha_ultima_modificacion if fecha_ultima_modificacion else None,
+                                 cambio_password if cambio_password else None,
+                                 usuario_id, rol_id, id_camaras_original))
+                            
+                            mysql.connection.commit()
+                            success = f'Cámara "{nombre}" actualizada exitosamente'
                     
                     # Si es una petición AJAX para editar, retornar JSON
                     if accion == 'editar':

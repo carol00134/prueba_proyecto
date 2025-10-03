@@ -212,21 +212,21 @@ class TicketsController:
                     if latitud and longitud:
                         cur.execute("""
                         UPDATE tickets SET 
-                            fecha_hora = %s, usuario_id = %s, departamento_id = %s, municipio_id = %s,
+                            fecha_hora = %s, regional = %s, usuario_id = %s, departamento_id = %s, municipio_id = %s,
                             tipologia_id = %s, subtipologia_id = %s, location = POINT(%s, %s),
                             descripcion = %s, nota_respaldo = %s, mando = %s, registro = %s, nota_final = %s
                         WHERE id = %s
-                        """, (fecha, id_usuario, id_departamento, id_municipio, id_tipologia, 
+                        """, (fecha, regional, id_usuario, id_departamento, id_municipio, id_tipologia, 
                               id_subtipologia, latitud, longitud, descripcion, nota_respaldo, 
                               id_mando, registro, nota_final, ticket_id))
                     else:
                         cur.execute("""
                         UPDATE tickets SET 
-                            fecha_hora = %s, usuario_id = %s, departamento_id = %s, municipio_id = %s,
+                            fecha_hora = %s, regional = %s, usuario_id = %s, departamento_id = %s, municipio_id = %s,
                             tipologia_id = %s, subtipologia_id = %s,
                             descripcion = %s, nota_respaldo = %s, mando = %s, registro = %s, nota_final = %s
                         WHERE id = %s
-                        """, (fecha, id_usuario, id_departamento, id_municipio, id_tipologia, 
+                        """, (fecha, regional, id_usuario, id_departamento, id_municipio, id_tipologia, 
                               id_subtipologia, descripcion, nota_respaldo, 
                               id_mando, registro, nota_final, ticket_id))
                     
@@ -412,6 +412,7 @@ class TicketsController:
                 'ticket_data': {
                     'id': ticket['id'],
                     'fecha': fecha_formatted,
+                    'regional': ticket['regional'],
                     'id_usuario': ticket['usuario_id'],
                     'id_departamento': ticket['departamento_id'],
                     'id_municipio': ticket['municipio_id'],

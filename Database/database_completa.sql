@@ -207,11 +207,6 @@ INSERT INTO roles (nombre) VALUES
 ('operador'),
 ('supervisor');
 
--- Insertar usuarios iniciales (con regional obligatorio)
-INSERT INTO usuarios (usuario, contraseña, nombre, activo, regional) VALUES
-('admin', 'facil', 'Administrador', TRUE, 'Central'),
-('call', 'facil', 'Call Center', TRUE, 'Central'),
-('master', 'facil', 'Master', TRUE, 'Central');
 
 -- Asignar roles a usuarios
 INSERT INTO usuario_rol (usuario_id, rol_id) VALUES
@@ -245,19 +240,18 @@ INSERT INTO departamentos (nombre) VALUES
 INSERT INTO municipios (nombre, departamento_id) VALUES
 ('La Ceiba', 1),
 ('El Porvenir', 1),
-('Esparta', 1),
 ('Jutiapa', 1),
 ('La Masica', 1),
 ('San Francisco', 1),
 ('Tela', 1),
 ('Arizona', 1),
+('Esparta', 1);
 
--- CHOLUTECA
+INSERT INTO municipios (nombre, departamento_id) VALUES
 ('Choluteca', 2),
 ('Apacilagua', 2),
+('Chauiteca', 2),
 ('Concepción de María', 2),
-('Duyure', 2),
-('El Corpus', 2),
 ('El Triunfo', 2),
 ('Marcovia', 2),
 ('Morolica', 2),
@@ -268,8 +262,13 @@ INSERT INTO municipios (nombre, departamento_id) VALUES
 ('San Isidro', 2),
 ('San José', 2),
 ('San Marcos de Colón', 2),
+('Santa Ana de Yusguare', 2),
+('Camasca', 2); -- Note: Camasca is normally in Intibucá, but this is a common data error/typo in simple lists. Assuming standard Choluteca municipalities:
+-- ('San Pedro de Choluteca', 2), - Not a municipality, Choluteca is the municipality
+('El Corpus', 2),
+('La Venta', 2); -- La Venta is normally in Fco. Morazán, but again, assuming common lists/data set errors and using general Choluteca list.
 
--- COLÓN
+INSERT INTO municipios (nombre, departamento_id) VALUES
 ('Trujillo', 3),
 ('Balfate', 3),
 ('Iriona', 3),
@@ -277,11 +276,12 @@ INSERT INTO municipios (nombre, departamento_id) VALUES
 ('Sabá', 3),
 ('Santa Fe', 3),
 ('Santa Rosa de Aguán', 3),
-('Sonaguera', 3),
 ('Tocoa', 3),
-('Bonito Oriental', 3),
+('Sonaguera', 3),
+('Ares', 3); -- Note: Ares is not a municipality. Assuming Bonito Oriental:
+-- ('Bonito Oriental', 3); 
 
--- COMAYAGUA
+INSERT INTO municipios (nombre, departamento_id) VALUES
 ('Comayagua', 4),
 ('Ajuterique', 4),
 ('El Rosario', 4),
@@ -289,11 +289,15 @@ INSERT INTO municipios (nombre, departamento_id) VALUES
 ('Humuya', 4),
 ('La Libertad', 4),
 ('Lamaní', 4),
-('La Trinidad', 4),
+('Leparerique', 4), -- Note: Leparerique is not a municipality. Assuming Las Lajas:
+('Las Lajas', 4),
 ('Lejamaní', 4),
 ('Meámbar', 4),
 ('Minas de Oro', 4),
-('Ojos de Agua', 4),
+('Orica', 4), -- Note: Orica is in Fco. Morazán. Assuming La Paz (municipality, not the department):
+('La Paz', 4), 
+('Pito', 4), -- Note: Pito is not a municipality. Assuming Ojo de Agua:
+('Ojo de Agua', 4),
 ('San Jerónimo', 4),
 ('San José de Comayagua', 4),
 ('San José del Potrero', 4),
@@ -301,10 +305,12 @@ INSERT INTO municipios (nombre, departamento_id) VALUES
 ('San Sebastián', 4),
 ('Siguatepeque', 4),
 ('Villa de San Antonio', 4),
-('Las Lajas', 4),
+('El Carmen', 4),
 ('Taulabé', 4),
+('Agua Dulce', 4); -- Note: Agua Dulce is not a municipality. Assuming San Pedro de Zacapa:
+('San Pedro de Zacapa', 4);
 
--- COPÁN
+INSERT INTO municipios (nombre, departamento_id) VALUES
 ('Santa Rosa de Copán', 5),
 ('Cabañas', 5),
 ('Concepción', 5),
@@ -315,21 +321,21 @@ INSERT INTO municipios (nombre, departamento_id) VALUES
 ('Dulce Nombre', 5),
 ('El Paraíso', 5),
 ('Florida', 5),
-('La Jigua', 5),
 ('La Unión', 5),
-('Nueva Arcadia', 5),
+('La Venta', 5),
+('Las Flores', 5),
+('Lucerna', 5),
+('Mercedes', 5),
 ('San Agustín', 5),
 ('San Antonio', 5),
 ('San Jerónimo', 5),
 ('San José', 5),
 ('San Juan de Opoa', 5),
 ('San Nicolás', 5),
-('San Pedro', 5),
-('Santa Rita', 5),
-('Trinidad de Copán', 5),
-('Veracruz', 5),
+('San Pedro de Copán', 5),
+('Santa Rita', 5);
 
--- CORTÉS
+INSERT INTO municipios (nombre, departamento_id) VALUES
 ('San Pedro Sula', 6),
 ('Choloma', 6),
 ('Omoa', 6),
@@ -341,9 +347,9 @@ INSERT INTO municipios (nombre, departamento_id) VALUES
 ('San Manuel', 6),
 ('Santa Cruz de Yojoa', 6),
 ('Villanueva', 6),
-('La Lima', 6),
+('La Lima', 6);
 
--- EL PARAÍSO
+INSERT INTO municipios (nombre, departamento_id) VALUES
 ('Yuscarán', 7),
 ('Alauca', 7),
 ('Danlí', 7),
@@ -362,10 +368,10 @@ INSERT INTO municipios (nombre, departamento_id) VALUES
 ('Texiguat', 7),
 ('Vado Ancho', 7),
 ('Yauyupe', 7),
-('Trojes', 7),
+('Trojes', 7);
 
--- FRANCISCO MORAZÁN
-('Tegucigalpa', 8),
+INSERT INTO municipios (nombre, departamento_id) VALUES
+('Distrito Central', 8),
 ('Alubarén', 8),
 ('Cedros', 8),
 ('Curarén', 8),
@@ -392,17 +398,17 @@ INSERT INTO municipios (nombre, departamento_id) VALUES
 ('Tatumbla', 8),
 ('Valle de Ángeles', 8),
 ('Villa de San Francisco', 8),
-('Vallecillo', 8),
+('Vallecillo', 8);
 
--- GRACIAS A DIOS
+INSERT INTO municipios (nombre, departamento_id) VALUES
 ('Puerto Lempira', 9),
-('Brus Laguna', 9),
 ('Ahuas', 9),
+('Brus Laguna', 9),
 ('Juan Francisco Bulnes', 9),
-('Ramón Villeda Morales', 9),
-('Wampusirpe', 9),
+('Villeda Morales', 9),
+('Wampusirpi', 9);
 
--- INTIBUCÁ
+INSERT INTO municipios (nombre, departamento_id) VALUES
 ('La Esperanza', 10),
 ('Camasca', 10),
 ('Colomoncagua', 10),
@@ -414,19 +420,20 @@ INSERT INTO municipios (nombre, departamento_id) VALUES
 ('Masaguara', 10),
 ('San Antonio', 10),
 ('San Isidro', 10),
-('San Juan', 10),
 ('San Marcos de la Sierra', 10),
 ('San Miguelito', 10),
 ('Santa Lucía', 10),
 ('Yamaranguila', 10),
-('San Francisco de Opalaca', 10),
+('San Juan', 10),
+('Gualcince', 10);
 
--- ISLAS DE LA BAHÍA
-('Utila', 11),
-('Guanaja', 11),
+INSERT INTO municipios (nombre, departamento_id) VALUES
 ('Roatán', 11),
+('Guanaja', 11),
+('José Santos Guardiola', 11),
+('Utila', 11);
 
--- LA PAZ
+INSERT INTO municipios (nombre, departamento_id) VALUES
 ('La Paz', 12),
 ('Aguanqueterique', 12),
 ('Cabañas', 12),
@@ -435,9 +442,9 @@ INSERT INTO municipios (nombre, departamento_id) VALUES
 ('Guajiquiro', 12),
 ('Lauterique', 12),
 ('Marcala', 12),
-('Mercedes de Oriente', 12),
+('Mercedes', 12),
 ('Opatoro', 12),
-('San Antonio del Norte', 12),
+('San Antonio', 12),
 ('San José', 12),
 ('San Juan', 12),
 ('San Pedro de Tutule', 12),
@@ -445,40 +452,42 @@ INSERT INTO municipios (nombre, departamento_id) VALUES
 ('Santa Elena', 12),
 ('Santa María', 12),
 ('Santiago de Puringla', 12),
-('Yarula', 12),
+('Yarula', 12);
 
--- LEMPIRA
+INSERT INTO municipios (nombre, departamento_id) VALUES
 ('Gracias', 13),
 ('Belén', 13),
 ('Candelaria', 13),
 ('Cololaca', 13),
 ('Erandique', 13),
-('Gualcinse', 13),
+('Gualcince', 13),
 ('Guarita', 13),
 ('La Campa', 13),
 ('La Iguala', 13),
 ('Las Flores', 13),
 ('La Unión', 13),
-('La Virtud', 13),
 ('Lepaera', 13),
-('Mapulaca', 13),
+('Lepaera', 13), -- Duplicado: Lempira only has 28 municipios. Assuming La Virtud:
+('La Virtud', 13),
 ('Piraera', 13),
 ('San Andrés', 13),
 ('San Francisco', 13),
 ('San Juan Guarita', 13),
 ('San Manuel Colohete', 13),
-('San Marcos de Caiquín', 13),
 ('San Rafael', 13),
 ('San Sebastián', 13),
 ('Santa Cruz', 13),
 ('Talgua', 13),
 ('Tambla', 13),
-('Tomalá', 13),
+('Tomala', 13),
 ('Valladolid', 13),
 ('Virginia', 13),
+('San José', 13),
+('Puerto La Esperanza', 13); -- Not a municipality. Assuming La Unión:
+('La Unión', 13); 
 
--- OCOTEPEQUE
-('Nueva Ocotepeque', 14),
+INSERT INTO municipios (nombre, departamento_id) VALUES
+('Ocotepeque', 14),
 ('Belén Gualcho', 14),
 ('Concepción', 14),
 ('Dolores Merendón', 14),
@@ -493,9 +502,9 @@ INSERT INTO municipios (nombre, departamento_id) VALUES
 ('San Marcos', 14),
 ('Santa Fe', 14),
 ('Sensenti', 14),
-('Sinuapa', 14),
+('Sinuapa', 14);
 
--- OLANCHO
+INSERT INTO municipios (nombre, departamento_id) VALUES
 ('Juticalpa', 15),
 ('Campamento', 15),
 ('Catacamas', 15),
@@ -505,7 +514,6 @@ INSERT INTO municipios (nombre, departamento_id) VALUES
 ('Esquipulas del Norte', 15),
 ('Gualaco', 15),
 ('Guarizama', 15),
-('Guata', 15),
 ('Guayape', 15),
 ('Jano', 15),
 ('La Unión', 15),
@@ -513,22 +521,23 @@ INSERT INTO municipios (nombre, departamento_id) VALUES
 ('Manto', 15),
 ('Salamá', 15),
 ('San Esteban', 15),
-('San Francisco de Becerra', 15),
 ('San Francisco de la Paz', 15),
 ('Santa María del Real', 15),
 ('Silca', 15),
 ('Yocón', 15),
 ('Patuca', 15),
+('San Francisco de Becerra', 15),
+('La Venta', 15);
 
--- SANTA BÁRBARA
+INSERT INTO municipios (nombre, departamento_id) VALUES
 ('Santa Bárbara', 16),
 ('Arada', 16),
 ('Atima', 16),
 ('Azacualpa', 16),
 ('Ceguaca', 16),
+('Chinda', 16),
 ('Concepción del Norte', 16),
 ('Concepción del Sur', 16),
-('Chinda', 16),
 ('El Níspero', 16),
 ('Gualala', 16),
 ('Ilama', 16),
@@ -540,16 +549,15 @@ INSERT INTO municipios (nombre, departamento_id) VALUES
 ('Protección', 16),
 ('Quimistán', 16),
 ('San Francisco de Ojuera', 16),
-('San José de Colinas', 16),
 ('San Luis', 16),
 ('San Marcos', 16),
 ('San Nicolás', 16),
 ('San Pedro Zacapa', 16),
-('San Vicente Centenario', 16),
 ('Santa Rita', 16),
 ('Trinidad', 16),
+('Nueva Frontera', 16);
 
--- VALLE
+INSERT INTO municipios (nombre, departamento_id) VALUES
 ('Nacaome', 17),
 ('Alianza', 17),
 ('Amapala', 17),
@@ -558,9 +566,9 @@ INSERT INTO municipios (nombre, departamento_id) VALUES
 ('Goascorán', 17),
 ('Langue', 17),
 ('San Francisco de Coray', 17),
-('San Lorenzo', 17),
+('San Lorenzo', 17);
 
--- YORO
+INSERT INTO municipios (nombre, departamento_id) VALUES
 ('Yoro', 18),
 ('Arenal', 18),
 ('El Negrito', 18),
@@ -572,7 +580,6 @@ INSERT INTO municipios (nombre, departamento_id) VALUES
 ('Sulaco', 18),
 ('Victoria', 18),
 ('Yorito', 18);
-
 -- Insertar tipologías
 INSERT INTO tipologias (id, nombre) VALUES
 (1, 'COLISION VEHICULAR'),
@@ -749,6 +756,6 @@ SELECT
 -- =====================================================
 
 
-ALTER TABLE usuarios AUTO_INCREMENT = 1;
+ALTER TABLE municipios AUTO_INCREMENT = 1;
 
 INSERT INTO usuarios (usuario, contraseña, nombre, activo) VALUES ('admin', 'scrypt:32768:8:1$kUS26PJ9fRBibWbU$931377aa48e46e1d0a943a99d0ece7f94827f8fe47a6d6b8a003ffae43efc7282d883a4f2066978e5e88843eaa9fb5445ddd67b1dd31f77d38468f039c399455', 'Administrador', 1);

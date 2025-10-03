@@ -1,8 +1,8 @@
-p{% extends "base.html" %}
+{% extends "base.html" %}
 
 {% block title %}Detalle del Ticket {{ ticket.id }} - Sistema{% endblock %}
 
-
+{% block page_title %}<i class="fas fa-eye me-2"></i>Detalle del Ticket{% endblock %}
 
 {% block back_button %}
 <a href="/tickets" class="btn-back">

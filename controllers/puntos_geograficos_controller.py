@@ -43,6 +43,32 @@ class PuntosGeograficosController:
                     cur.execute("DELETE FROM puntos_geograficos WHERE id = %s", (punto_id,))
                     mysql.connection.commit()
                     success = 'Punto geográfico eliminado exitosamente'
+                
+                elif accion == 'editar':
+                    punto_id = request.form.get('id')
+                    nombre = request.form.get('nombre')
+                    descripcion = request.form.get('descripcion')
+                    departamento_id = request.form.get('departamento_id')
+                    municipio_id = request.form.get('municipio_id')
+                    direccion = request.form.get('direccion')
+                    latitud = request.form.get('latitud')
+                    longitud = request.form.get('longitud')
+                    
+                    if not all([punto_id, nombre, departamento_id, municipio_id, latitud, longitud]):
+                        error = 'Por favor complete todos los campos obligatorios'
+                    else:
+                        # Actualizar el punto geográfico con POINT
+                        point_wkt = f"POINT({longitud} {latitud})"
+                        
+                        cur.execute("""
+                            UPDATE puntos_geograficos 
+                            SET nombre = %s, descripcion = %s, departamento_id = %s, 
+                                municipio_id = %s, direccion = %s, location = ST_GeomFromText(%s)
+                            WHERE id = %s
+                        """, (nombre, descripcion, departamento_id, municipio_id, direccion, point_wkt, punto_id))
+                        
+                        mysql.connection.commit()
+                        success = f'Punto geográfico "{nombre}" actualizado exitosamente'
                     
             except Exception as e:
                 error = f'Error: {str(e)}'

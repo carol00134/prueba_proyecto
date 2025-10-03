@@ -2,7 +2,7 @@
 
 {% block title %}Gestión de Cámaras - Sistema{% endblock %}
 
-{% block page_title %}<i class="fas fa-video me-2"></i>Registrar Nueva Cámara{% endblock %}
+{% block page_title %}<i class="fas fa-video me-2"></i>Gestión de Cámaras{% endblock %}
 
 {% block back_button %}
 <a href="/" class="btn-back">
@@ -222,6 +222,7 @@
     <h3>Editar Cámara</h3>
     <form id="editForm">
       <input type="hidden" name="accion" value="editar">
+      <input type="hidden" name="id_camaras_original" id="edit_id_camaras_original">
       
       <div class="row">
         <div class="col-md-4">
@@ -332,6 +333,7 @@ function editarCamara(id) {
     .then(data => {
       if (data.success) {
         // Llenar el formulario con los datos
+        document.getElementById('edit_id_camaras_original').value = data.camara.id_camaras || '';
         document.getElementById('edit_id_camaras').value = data.camara.id_camaras || '';
         document.getElementById('edit_correo').value = data.camara.correo || '';
         document.getElementById('edit_nombre').value = data.camara.nombre || '';

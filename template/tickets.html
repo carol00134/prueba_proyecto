@@ -4,8 +4,25 @@
 
 {% block page_title %}<i class="fas fa-ticket-alt me-2"></i>Gestión de Tickets{% endblock %}
 
+{% block back_button %}
+<a href="/" class="btn-back">
+  <i class="fas fa-home me-1"></i>Inicio
+</a>
+{% endblock %}
+
 {% block content %}
 <link rel="stylesheet" href="{{ url_for('static', filename='tickets.css') }}">
+
+<style>
+.page-navigation h6 {
+    color: #374151;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0;
+    display: flex;
+    align-items: center;
+}
+</style>
 
 <div class="container-fluid">
 
@@ -179,67 +196,61 @@
         </div>
       </div>
 
-      <div class="text-center">
-        <button type="submit" class="btn btn-primary btn-sm btn-create-ticket me-2" id="submit-btn">
-          <i class="fas fa-save me-1"></i>Crear
-        </button>
-        <button type="button" class="btn btn-secondary btn-sm btn-cancel-ticket" onclick="limpiarFormulario()">
-          <i class="fas fa-times me-1"></i>Limpiar
-        </button>
+      <div class="text-center ticket-buttons-container">
+        <button type="submit" id="submit-btn" class="tiny-btn tiny-btn-primary" title="Crear ticket">+</button>
+        <button type="button" id="cancel-btn" class="tiny-btn tiny-btn-secondary" onclick="limpiarFormulario()" title="Cancelar">×</button>
       </div>
     </form>
   </div>
 
   <!-- Lista de tickets -->
-  <div class="ticket-container">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h5 class="mb-0">Lista de Tickets</h5>
-      <a href="/agregar_ticket" class="btn btn-primary btn-sm">
-        <i class="fas fa-plus me-1"></i>Agregar Ticket
-      </a>
-    </div>
-
-<!--cargar rchivo excel-->
-<br>
-
-
+  <div class="table-container">
+    <h3 class="p-3 mb-0 border-bottom">
+      <i class="fas fa-list me-2"></i>Lista de Tickets
+    </h3>
     
     <!-- Filtros -->
-    <div class="row mb-3">
-      <div class="col-md-2">
-        <select class="form-select" id="filtro_departamento" onchange="filtrarTickets()">
-          <option value="">Departamentos</option>
-          {% for depto in departamentos %}
-          <option value="{{ depto.id }}">{{ depto.nombre }}</option>
-          {% endfor %}
-        </select>
-      </div>
-      <div class="col-md-2">
-        <select class="form-select" id="filtro_tipologia" onchange="cargarSubtipologiasFiltro(); filtrarTickets()">
-          <option value="">Tipologías</option>
-          {% for tipo in tipologias %}
-          <option value="{{ tipo.id }}">{{ tipo.nombre }}</option>
-          {% endfor %}
-        </select>
-      </div>
-      <div class="col-md-2">
-        <select class="form-select" id="filtro_subtipologia" onchange="filtrarTickets()">
-          <option value="">Subtipologías</option>
-        </select>
-      </div>
-      <div class="col-md-2">
-        <input type="date" class="form-control" id="filtro_fecha" onchange="filtrarTickets()">
-      </div>
-      <div class="col-md-4">
-        <button class="btn btn-secondary btn-sm" onclick="limpiarFiltros()">
-          <i class="fas fa-refresh"></i> Limpiar
-        </button>
+    <div class="p-3">
+      <div class="row mb-3">
+        <div class="col-md-2">
+          <select class="form-select" id="filtro_departamento" onchange="cargarMunicipiosFiltro(); filtrarTickets()">
+            <option value="">Departamentos</option>
+            {% for depto in departamentos %}
+            <option value="{{ depto.id }}">{{ depto.nombre }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-2">
+          <select class="form-select" id="filtro_municipio" onchange="filtrarTickets()">
+            <option value="">Municipios</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <select class="form-select" id="filtro_tipologia" onchange="cargarSubtipologiasFiltro(); filtrarTickets()">
+            <option value="">Tipologías</option>
+            {% for tipo in tipologias %}
+            <option value="{{ tipo.id }}">{{ tipo.nombre }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-2">
+          <select class="form-select" id="filtro_subtipologia" onchange="filtrarTickets()">
+            <option value="">Subtipologías</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <input type="date" class="form-control" id="filtro_fecha" onchange="filtrarTickets()">
+        </div>
+        <div class="col-md-2">
+          <button class="btn btn-secondary btn-sm" onclick="limpiarFiltros()">
+            <i class="fas fa-refresh"></i> Limpiar
+          </button>
+        </div>
       </div>
     </div>
     
-    <div class="table-container">
-      <div class="table-responsive">
-        <table class="table" id="ticketsTable">
+    <div class="table-responsive">
+      <table class="table" id="ticketsTable">
           <thead>
             <tr>
               <th>ID</th>
@@ -296,7 +307,6 @@
         <p class="text-muted">No hay tickets registrados.</p>
       </div>
       {% endif %}
-    </div>
   </div>
 </div>
 
@@ -371,13 +381,20 @@ function editarTicket(ticketId) {
             if (data.success) {
                 const ticket = data.ticket_data;
                 
+                console.log('Datos completos del ticket:', data);
+                console.log('Ticket data:', ticket);
+                console.log('Despachos:', ticket.despachos);
+                console.log('Unidades:', ticket.unidades);
+                
                 // Actualizar título y botón
                 document.getElementById('form-title').textContent = `Editar Ticket #${ticketId}`;
-                document.getElementById('submit-btn').innerHTML = '<i class="fas fa-save me-1"></i>Actualizar';
+                document.getElementById('submit-btn').innerHTML = '<i class="fas fa-save"></i>';
+                document.getElementById('submit-btn').title = 'Actualizar ticket';
                 
                 // Llenar formulario
                 document.getElementById('ticket_id').value = ticketId;
                 if (ticket.fecha) document.getElementById('fecha').value = ticket.fecha;
+                if (ticket.regional) document.getElementById('regional').value = ticket.regional;
                 if (ticket.id_usuario) document.getElementById('id_usuario').value = ticket.id_usuario;
                 if (ticket.id_departamento) document.getElementById('id_departamento').value = ticket.id_departamento;
                 if (ticket.id_tipologia) document.getElementById('id_tipologia').value = ticket.id_tipologia;
@@ -420,6 +437,64 @@ function editarTicket(ticketId) {
                                 subtipologiaSelect.appendChild(option);
                             });
                         });
+                }
+                
+                // Cargar y marcar checkboxes de despachos
+                console.log('Procesando despachos...');
+                const despachosCheckboxes = document.querySelectorAll('input[name="despachos"]');
+                console.log('Checkboxes de despachos disponibles:', despachosCheckboxes.length);
+                despachosCheckboxes.forEach((cb, index) => {
+                    console.log(`Checkbox ${index}:`, cb.id, cb.value);
+                });
+                
+                if (ticket.despachos && ticket.despachos.length > 0) {
+                    console.log('Despachos encontrados:', ticket.despachos);
+                    // Limpiar todos los checkboxes de despachos primero
+                    despachosCheckboxes.forEach(checkbox => {
+                        checkbox.checked = false;
+                    });
+                    
+                    // Marcar los checkboxes seleccionados
+                    ticket.despachos.forEach(despachoId => {
+                        console.log('Buscando checkbox para despacho:', despachoId);
+                        const checkbox = document.getElementById(`despacho_${despachoId}`);
+                        console.log('Checkbox encontrado:', checkbox);
+                        if (checkbox) {
+                            checkbox.checked = true;
+                            console.log('Checkbox marcado para despacho:', despachoId);
+                        }
+                    });
+                } else {
+                    console.log('No hay despachos asignados o datos vacíos');
+                }
+                
+                // Cargar y marcar checkboxes de unidades
+                console.log('Procesando unidades...');
+                const unidadesCheckboxes = document.querySelectorAll('input[name="unidades"]');
+                console.log('Checkboxes de unidades disponibles:', unidadesCheckboxes.length);
+                unidadesCheckboxes.forEach((cb, index) => {
+                    console.log(`Checkbox ${index}:`, cb.id, cb.value);
+                });
+                
+                if (ticket.unidades && ticket.unidades.length > 0) {
+                    console.log('Unidades encontradas:', ticket.unidades);
+                    // Limpiar todos los checkboxes de unidades primero
+                    unidadesCheckboxes.forEach(checkbox => {
+                        checkbox.checked = false;
+                    });
+                    
+                    // Marcar los checkboxes seleccionados
+                    ticket.unidades.forEach(unidadId => {
+                        console.log('Buscando checkbox para unidad:', unidadId);
+                        const checkbox = document.getElementById(`unidad_${unidadId}`);
+                        console.log('Checkbox encontrado:', checkbox);
+                        if (checkbox) {
+                            checkbox.checked = true;
+                            console.log('Checkbox marcado para unidad:', unidadId);
+                        }
+                    });
+                } else {
+                    console.log('No hay unidades asignadas o datos vacíos');
                 }
                 
                 // Resaltar fila
@@ -473,10 +548,35 @@ function limpiarFormulario() {
     document.getElementById('ticketForm').reset();
     document.getElementById('ticket_id').value = '0';
     document.getElementById('form-title').textContent = 'Crear Nuevo Ticket';
-    document.getElementById('submit-btn').innerHTML = '<i class="fas fa-save me-1"></i>Crear';
+    document.getElementById('submit-btn').innerHTML = '<i class="fas fa-plus"></i>';
+    document.getElementById('submit-btn').title = 'Crear ticket';
     document.querySelectorAll('tr').forEach(row => row.classList.remove('edit-row'));
     document.getElementById('id_municipio').innerHTML = '<option value="">Seleccione un municipio</option>';
     document.getElementById('id_subtipologia').innerHTML = '<option value="">Seleccione una subtipología</option>';
+}
+
+// Cargar municipios para filtro
+function cargarMunicipiosFiltro() {
+    const departamentoId = document.getElementById('filtro_departamento').value;
+    const municipioSelect = document.getElementById('filtro_municipio');
+    
+    municipioSelect.innerHTML = '<option value="">Municipios</option>';
+    
+    if (departamentoId) {
+        fetch(`/api/municipios/${departamentoId}`)
+            .then(response => response.json())
+            .then(data => {
+                data.forEach(municipio => {
+                    const option = document.createElement('option');
+                    option.value = municipio.id;
+                    option.textContent = municipio.nombre;
+                    municipioSelect.appendChild(option);
+                });
+            })
+            .catch(error => {
+                console.error('Error al cargar municipios para filtro:', error);
+            });
+    }
 }
 
 // Cargar subtipologías para filtro
@@ -484,7 +584,7 @@ function cargarSubtipologiasFiltro() {
     const tipologiaId = document.getElementById('filtro_tipologia').value;
     const subtipologiaSelect = document.getElementById('filtro_subtipologia');
     
-    subtipologiaSelect.innerHTML = '<option value="">Todas las subtipologías</option>';
+    subtipologiaSelect.innerHTML = '<option value="">Subtipologías</option>';
     
     if (tipologiaId) {
         fetch(`/api/subtipologias/${tipologiaId}`)
@@ -496,74 +596,225 @@ function cargarSubtipologiasFiltro() {
                     option.textContent = subtipologia.nombre;
                     subtipologiaSelect.appendChild(option);
                 });
+            })
+            .catch(error => {
+                console.error('Error al cargar subtipologías para filtro:', error);
             });
     }
 }
 
-// Filtrar tickets (función básica)
+// Filtrar tickets - VERSIÓN SIMPLIFICADA PARA DEBUG
 function filtrarTickets() {
-    const filtroDepartamento = document.getElementById('filtro_departamento').value;
-    const filtroTipologia = document.getElementById('filtro_tipologia').value;
-    const filtroSubtipologia = document.getElementById('filtro_subtipologia').value;
-    const filtroFecha = document.getElementById('filtro_fecha').value;
+    console.log('=== INICIANDO FILTRADO ===');
     
-    const rows = document.querySelectorAll('#ticketsTable tbody tr');
+    // Verificar que existan los elementos
+    const filtroDepartamento = document.getElementById('filtro_departamento');
+    const filtroMunicipio = document.getElementById('filtro_municipio');
+    const tabla = document.getElementById('ticketsTable');
     
-    rows.forEach(row => {
-        let mostrar = true;
-        
-        // Filtro por departamento (ahora es columna 3)
-        if (filtroDepartamento) {
-            const departamento = row.cells[3].textContent.trim();
-            const departamentoSelect = document.getElementById('filtro_departamento');
-            const selectedOption = departamentoSelect.options[departamentoSelect.selectedIndex];
-            if (selectedOption && departamento !== selectedOption.textContent) {
-                mostrar = false;
-            }
-        }
-        
-        // Filtro por tipología (ahora es columna 5)
-        if (filtroTipologia) {
-            const tipologia = row.cells[5].textContent.trim();
-            const tipologiaSelect = document.getElementById('filtro_tipologia');
-            const selectedOption = tipologiaSelect.options[tipologiaSelect.selectedIndex];
-            if (selectedOption && tipologia !== selectedOption.textContent) {
-                mostrar = false;
-            }
-        }
-        
-        // Filtro por subtipología (ahora es columna 6)
-        if (filtroSubtipologia) {
-            const subtipologia = row.cells[6].textContent.trim();
-            const subtipologiaSelect = document.getElementById('filtro_subtipologia');
-            const selectedOption = subtipologiaSelect.options[subtipologiaSelect.selectedIndex];
-            if (selectedOption && subtipologia !== selectedOption.textContent && subtipologia !== 'N/A') {
-                mostrar = false;
-            }
-        }
-        
-        // Filtro por fecha (sigue siendo columna 1)
-        if (filtroFecha) {
-            const fechaTicket = row.cells[1].textContent.trim();
-            if (fechaTicket !== 'N/A') {
-                const fechaTicketFormateada = fechaTicket.split(' ')[0].split('/').reverse().join('-');
-                if (fechaTicketFormateada !== filtroFecha) {
-                    mostrar = false;
-                }
-            }
-        }
-        
-        row.style.display = mostrar ? '' : 'none';
+    if (!filtroDepartamento) {
+        console.error(' No se encuentra el elemento filtro_departamento');
+        return;
+    }
+    
+    if (!tabla) {
+        console.error(' No se encuentra la tabla ticketsTable');
+        return;
+    }
+    
+    const rows = tabla.querySelectorAll('tbody tr');
+    console.log(` Encontradas ${rows.length} filas en la tabla`);
+    
+    if (rows.length === 0) {
+        console.log(' No hay tickets en la tabla para filtrar');
+        return;
+    }
+    
+    // Obtener valores de filtros
+    const valorDepartamento = filtroDepartamento.value;
+    const valorMunicipio = filtroMunicipio ? filtroMunicipio.value : '';
+    
+    console.log(`🔍 Filtros aplicados:`, {
+        departamento: valorDepartamento,
+        municipio: valorMunicipio
     });
+    
+    // Si no hay filtros activos, mostrar todo
+    if (!valorDepartamento && !valorMunicipio) {
+        console.log('📋 No hay filtros activos, mostrando todos los tickets');
+        rows.forEach(row => {
+            row.style.display = '';
+        });
+        return;
+    }
+    
+    let ticketsMostrados = 0;
+    let ticketsOcultos = 0;
+    
+    rows.forEach((row, index) => {
+        let mostrar = true;
+        const cells = row.cells;
+        
+        if (!cells || cells.length < 5) {
+            console.log(`⚠️ Fila ${index} no tiene suficientes celdas`);
+            return;
+        }
+        
+        const ticketId = cells[0].textContent.trim();
+        console.log(`\n🎫 Procesando ticket: ${ticketId}`);
+        
+        // Filtro por departamento
+        if (valorDepartamento) {
+            const departamentoEnTabla = cells[3].textContent.trim();
+            const optionSeleccionada = filtroDepartamento.options[filtroDepartamento.selectedIndex];
+            const departamentoFiltro = optionSeleccionada ? optionSeleccionada.textContent.trim() : '';
+            
+            console.log(`    Departamento tabla: "${departamentoEnTabla}"`);
+            console.log(`    Departamento filtro: "${departamentoFiltro}"`);
+            
+            if (departamentoEnTabla !== departamentoFiltro) {
+                mostrar = false;
+                console.log(`    No coincide departamento`);
+            } else {
+                console.log(`    Coincide departamento`);
+            }
+        }
+        
+        // Filtro por municipio
+        if (valorMunicipio && mostrar && filtroMunicipio) {
+            const municipioEnTabla = cells[4].textContent.trim();
+            const optionSeleccionada = filtroMunicipio.options[filtroMunicipio.selectedIndex];
+            const municipioFiltro = optionSeleccionada ? optionSeleccionada.textContent.trim() : '';
+            
+            console.log(`    Municipio tabla: "${municipioEnTabla}"`);
+            console.log(`    Municipio filtro: "${municipioFiltro}"`);
+            
+            if (municipioEnTabla !== municipioFiltro) {
+                mostrar = false;
+                console.log(`    No coincide municipio`);
+            } else {
+                console.log(`    Coincide municipio`);
+            }
+        }
+        
+        // Aplicar visibilidad
+        row.style.display = mostrar ? '' : 'none';
+        
+        if (mostrar) {
+            ticketsMostrados++;
+            console.log(`    MOSTRAR ticket ${ticketId}`);
+        } else {
+            ticketsOcultos++;
+            console.log(`    OCULTAR ticket ${ticketId}`);
+        }
+    });
+    
+    console.log(`\n RESULTADO: ${ticketsMostrados} mostrados, ${ticketsOcultos} ocultos`);
+    console.log('=== FILTRADO COMPLETADO ===\n');
 }
 
 function limpiarFiltros() {
     document.getElementById('filtro_departamento').value = '';
+    document.getElementById('filtro_municipio').innerHTML = '<option value="">Municipios</option>';
+    document.getElementById('filtro_municipio').value = '';
     document.getElementById('filtro_tipologia').value = '';
+    document.getElementById('filtro_subtipologia').innerHTML = '<option value="">Subtipologías</option>';
     document.getElementById('filtro_subtipologia').value = '';
     document.getElementById('filtro_fecha').value = '';
-    cargarSubtipologiasFiltro(); // Limpiar subtipologías
-    filtrarTickets();
+    filtrarTickets(); // Mostrar todos los tickets
 }
+
+// FORZAR TAMAÑO DE BOTONES CON JAVASCRIPT - VERSIÓN MEJORADA
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 Página de tickets cargada');
+    
+    // Verificar elementos críticos
+    const elementos = [
+        'filtro_departamento',
+        'filtro_municipio', 
+        'ticketsTable'
+    ];
+    
+    elementos.forEach(id => {
+        const elemento = document.getElementById(id);
+        if (elemento) {
+            console.log(` Elemento ${id} encontrado`);
+        } else {
+            console.error(` Elemento ${id} NO encontrado`);
+        }
+    });
+    
+    // Verificar si hay tickets en la tabla
+    const tabla = document.getElementById('ticketsTable');
+    if (tabla) {
+        const filas = tabla.querySelectorAll('tbody tr');
+        console.log(` Tickets en tabla: ${filas.length}`);
+        
+        if (filas.length > 0) {
+            console.log(' Ejemplo de ticket en fila 0:');
+            const primeraFila = filas[0];
+            for (let i = 0; i < primeraFila.cells.length; i++) {
+                console.log(`   Columna ${i}: "${primeraFila.cells[i].textContent.trim()}"`);
+            }
+        }
+    }
+    
+    function forzarTamañoBotones() {
+        const submitBtn = document.getElementById('submit-btn');
+        const cancelBtn = document.getElementById('cancel-btn');
+        
+        const estilosComunes = {
+            width: '20px',
+            height: '18px',
+            minWidth: '20px',
+            maxWidth: '20px',
+            minHeight: '18px',
+            maxHeight: '18px',
+            padding: '0',
+            margin: '0 1px',
+            fontSize: '10px',
+            fontWeight: 'bold',
+            lineHeight: '1',
+            borderWidth: '1px',
+            borderStyle: 'solid',
+            borderRadius: '3px',
+            color: 'white',
+            textAlign: 'center',
+            display: 'inline-block',
+            boxSizing: 'border-box',
+            cursor: 'pointer',
+            outline: 'none',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            verticalAlign: 'top',
+            fontFamily: 'Arial, sans-serif'
+        };
+        
+        if (submitBtn) {
+            Object.assign(submitBtn.style, estilosComunes);
+            submitBtn.style.borderColor = '#007bff';
+            submitBtn.style.backgroundColor = '#007bff';
+            submitBtn.style.background = '#007bff';
+        }
+        
+        if (cancelBtn) {
+            Object.assign(cancelBtn.style, estilosComunes);
+            cancelBtn.style.borderColor = '#6c757d';
+            cancelBtn.style.backgroundColor = '#6c757d';
+            cancelBtn.style.background = '#6c757d';
+        }
+    }
+    
+    // Aplicar múltiples veces para asegurar que funcione
+    forzarTamañoBotones();
+    setTimeout(forzarTamañoBotones, 50);
+    setTimeout(forzarTamañoBotones, 200);
+    setTimeout(forzarTamañoBotones, 500);
+    setTimeout(forzarTamañoBotones, 1000);
+    
+    // También aplicar cuando hay cambios en el DOM
+    const observer = new MutationObserver(forzarTamañoBotones);
+    observer.observe(document.body, { childList: true, subtree: true });
+});
 </script>
 {% endblock %}

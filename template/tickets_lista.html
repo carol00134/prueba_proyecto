@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 
-{% block title %}Lista de Tickets - Sistema{% endblock %}
+{% block title %}Gestión de Tickets - Sistema{% endblock %}
 
-
+{% block page_title %}<i class="fas fa-ticket-alt me-2"></i>Gestión de Tickets{% endblock %}
 
 {% block back_button %}
 <a href="/" class="btn-back">
@@ -15,9 +15,6 @@
 
 
 <div class="container-fluid px-4">
-  <div class="page-header">
-    <h2><i class="fas fa-ticket-alt me-2"></i>Gestión de Tickets</h2>
-  </div>
 
   <!-- Mostrar errores -->
   {% with messages = get_flashed_messages() %}
@@ -97,9 +94,9 @@
                 </a>
               </td>
               <td>{{ ticket.fecha_hora.strftime('%Y-%m-%d') if ticket.fecha_hora else 'N/A' }}</td>
-              <td data-departamento-id="{{ ticket.departamento_id or '' }}">{{ ticket.departamento_nombre or 'N/A' }}</td>
-              <td data-municipio-id="{{ ticket.municipio_id or '' }}">{{ ticket.municipio_nombre or 'N/A' }}</td>
-              <td data-tipologia-id="{{ ticket.tipologia_id or '' }}">{{ ticket.tipologia_nombre or 'N/A' }}</td>
+              <td data-departamento-id="{{ ticket.id_departamento or '' }}">{{ ticket.departamento_nombre or 'N/A' }}</td>
+              <td data-municipio-id="{{ ticket.id_municipio or '' }}">{{ ticket.municipio_nombre or 'N/A' }}</td>
+              <td data-tipologia-id="{{ ticket.id_tipologia or '' }}">{{ ticket.tipologia_nombre or 'N/A' }}</td>
               <td class="coordinates">
                 {% if ticket.latitud and ticket.longitud %}
                   {{ "%.6f"|format(ticket.latitud) }},<br>{{ "%.6f"|format(ticket.longitud) }}
@@ -249,7 +246,7 @@ function filtrarTickets() {
         if (filtroFecha) {
             const celdaFecha = fila.cells[1]; // Columna de fecha
             const fechaTicket = celdaFecha.textContent.trim();
-            if (fechaTicket !== filtroFecha) {
+            if (fechaTicket !== filtroFecha && fechaTicket !== 'N/A') {
                 mostrar = false;
             }
         }
