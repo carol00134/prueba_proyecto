@@ -3,6 +3,44 @@ from config import mysql
 
 class CamarasController:
     @staticmethod
+    def get_camara(id_camara):
+        """Get individual camera data for API"""
+        try:
+            cur = mysql.connection.cursor()
+            
+            cur.execute("""
+                SELECT id_camaras, correo, nombre, estado, regional,
+                       fecha_creacion, fecha_ultima_modificacion, cambio_password,
+                       usuario_id, latitud, longitud
+                FROM camaras 
+                WHERE id_camaras = %s
+            """, (id_camara,))
+            
+            camara = cur.fetchone()
+            cur.close()
+            
+            if camara:
+                # Convertir fecha a string si existe
+                if camara.get('fecha_creacion'):
+                    camara['fecha_creacion'] = camara['fecha_creacion'].strftime('%Y-%m-%d')
+                
+                return jsonify({
+                    'success': True,
+                    'camara': camara
+                })
+            else:
+                return jsonify({
+                    'success': False,
+                    'message': 'Cámara no encontrada'
+                })
+                
+        except Exception as e:
+            return jsonify({
+                'success': False,
+                'message': f'Error al obtener la cámara: {str(e)}'
+            })
+
+    @staticmethod
     def camaras():
         """Handle cameras management"""
         error = None
@@ -26,7 +64,8 @@ class CamarasController:
                     fecha_ultima_modificacion = request.form.get('fecha_ultima_modificacion')
                     cambio_password = request.form.get('cambio_password')
                     usuario_id = request.form.get('usuario_id') if request.form.get('usuario_id') else None
-                    rol_id = request.form.get('rol_id') if request.form.get('rol_id') else None
+                    latitud = request.form.get('latitud', '').strip()
+                    longitud = request.form.get('longitud', '').strip()
                     
                     print(f"DEBUG: Agregando cámara con ID: '{id_camaras}'")  # Log para debug
                     
@@ -38,27 +77,44 @@ class CamarasController:
                     elif not nombre:
                         error = 'El nombre es obligatorio'
                     else:
-                        # Verificar si el ID ya existe
-                        cur.execute("SELECT COUNT(*) as count FROM camaras WHERE id_camaras = %s", (id_camaras,))
-                        result = cur.fetchone()
-                        if result['count'] > 0:
-                            error = f'Ya existe una cámara con el ID "{id_camaras}"'
-                        else:
-                            # Insertar nueva cámara
-                            cur.execute("""
-                                INSERT INTO camaras (id_camaras, correo, nombre, estado, regional, 
-                                                   fecha_creacion, fecha_ultima_modificacion, cambio_password, 
-                                                   usuario_id, rol_id) 
-                                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                            """, (id_camaras, correo, nombre, estado, 
-                                 regional if regional else None,
-                                 fecha_creacion if fecha_creacion else None,
-                                 fecha_ultima_modificacion if fecha_ultima_modificacion else None,
-                                 cambio_password if cambio_password else None,
-                                 usuario_id, rol_id))
-                            
-                            mysql.connection.commit()
-                            success = f'Cámara "{nombre}" agregada exitosamente'
+                        # Validar coordenadas si se proporcionan
+                        latitud_val = None
+                        longitud_val = None
+                        if latitud and longitud:
+                            try:
+                                latitud_val = float(latitud)
+                                longitud_val = float(longitud)
+                                if not (-90 <= latitud_val <= 90):
+                                    error = 'La latitud debe estar entre -90 y 90 grados'
+                                elif not (-180 <= longitud_val <= 180):
+                                    error = 'La longitud debe estar entre -180 y 180 grados'
+                            except ValueError:
+                                error = 'Las coordenadas deben ser números válidos'
+                        elif latitud or longitud:
+                            error = 'Debe proporcionar tanto latitud como longitud, o dejar ambos campos vacíos'
+                        
+                        if not error:
+                            # Verificar si el ID ya existe
+                            cur.execute("SELECT COUNT(*) as count FROM camaras WHERE id_camaras = %s", (id_camaras,))
+                            result = cur.fetchone()
+                            if result['count'] > 0:
+                                error = f'Ya existe una cámara con el ID "{id_camaras}"'
+                            else:
+                                # Insertar nueva cámara
+                                cur.execute("""
+                                    INSERT INTO camaras (id_camaras, correo, nombre, estado, regional, 
+                                                       fecha_creacion, fecha_ultima_modificacion, cambio_password, 
+                                                       usuario_id, latitud, longitud) 
+                                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                                """, (id_camaras, correo, nombre, estado, 
+                                     regional if regional else None,
+                                     fecha_creacion if fecha_creacion else None,
+                                     fecha_ultima_modificacion if fecha_ultima_modificacion else None,
+                                     cambio_password if cambio_password else None,
+                                     usuario_id, latitud_val, longitud_val))
+                                
+                                mysql.connection.commit()
+                                success = f'Cámara "{nombre}" agregada exitosamente'
                     
                 elif accion == 'eliminar':
                     id_camaras = request.form.get('id_camaras')
@@ -78,7 +134,8 @@ class CamarasController:
                     fecha_ultima_modificacion = request.form.get('fecha_ultima_modificacion')
                     cambio_password = request.form.get('cambio_password')
                     usuario_id = request.form.get('usuario_id') if request.form.get('usuario_id') else None
-                    rol_id = request.form.get('rol_id') if request.form.get('rol_id') else None
+                    latitud = request.form.get('latitud', '').strip()
+                    longitud = request.form.get('longitud', '').strip()
                     
                     print(f"DEBUG: Editando cámara. ID original: '{id_camaras_original}', ID nuevo: '{id_camaras}'")  # Log para debug
                     
@@ -90,8 +147,24 @@ class CamarasController:
                     elif not nombre:
                         error = 'El nombre es obligatorio'
                     else:
+                        # Validar coordenadas si se proporcionan
+                        latitud_val = None
+                        longitud_val = None
+                        if latitud and longitud:
+                            try:
+                                latitud_val = float(latitud)
+                                longitud_val = float(longitud)
+                                if not (-90 <= latitud_val <= 90):
+                                    error = 'La latitud debe estar entre -90 y 90 grados'
+                                elif not (-180 <= longitud_val <= 180):
+                                    error = 'La longitud debe estar entre -180 y 180 grados'
+                            except ValueError:
+                                error = 'Las coordenadas deben ser números válidos'
+                        elif latitud or longitud:
+                            error = 'Debe proporcionar tanto latitud como longitud, o dejar ambos campos vacíos'
+                        
                         # Si el ID cambió, verificar que el nuevo ID no exista en otra cámara
-                        if id_camaras != id_camaras_original:
+                        if not error and id_camaras != id_camaras_original:
                             cur.execute("SELECT COUNT(*) as count FROM camaras WHERE id_camaras = %s", (id_camaras,))
                             result = cur.fetchone()
                             if result['count'] > 0:
@@ -103,14 +176,14 @@ class CamarasController:
                                 UPDATE camaras SET 
                                     id_camaras = %s, correo = %s, nombre = %s, estado = %s, regional = %s,
                                     fecha_creacion = %s, fecha_ultima_modificacion = %s, 
-                                    cambio_password = %s, usuario_id = %s, rol_id = %s
+                                    cambio_password = %s, usuario_id = %s, latitud = %s, longitud = %s
                                 WHERE id_camaras = %s
                             """, (id_camaras, correo, nombre, estado, 
                                  regional if regional else None,
                                  fecha_creacion if fecha_creacion else None,
                                  fecha_ultima_modificacion if fecha_ultima_modificacion else None,
                                  cambio_password if cambio_password else None,
-                                 usuario_id, rol_id, id_camaras_original))
+                                 usuario_id, latitud_val, longitud_val, id_camaras_original))
                             
                             mysql.connection.commit()
                             success = f'Cámara "{nombre}" actualizada exitosamente'
@@ -133,15 +206,14 @@ class CamarasController:
         # Obtener datos para mostrar
         cur = mysql.connection.cursor()
         
-        # Obtener cámaras con información de usuario y rol
+        # Obtener cámaras con información de usuario y coordenadas
         cur.execute("""
             SELECT c.id_camaras, c.correo, c.nombre, c.estado, c.regional,
                    c.fecha_creacion, c.fecha_ultima_modificacion, c.cambio_password,
-                   c.usuario_id, c.rol_id,
-                   u.nombre as usuario_nombre, r.nombre as rol_nombre
+                   c.usuario_id, c.latitud, c.longitud,
+                   u.nombre as usuario_nombre
             FROM camaras c
             LEFT JOIN usuarios u ON c.usuario_id = u.id
-            LEFT JOIN roles r ON c.rol_id = r.id
             ORDER BY c.nombre
         """)
         camaras = cur.fetchall()
@@ -163,16 +235,52 @@ class CamarasController:
         cur.execute("SELECT id, nombre, usuario FROM usuarios ORDER BY nombre")
         usuarios = cur.fetchall()
         
-        # Obtener roles para el dropdown
-        cur.execute("SELECT id, nombre FROM roles ORDER BY nombre")
-        roles = cur.fetchall()
-        
         cur.close()
         
         return render_template('camaras.html',
                              camaras=camaras,
                              usuarios=usuarios,
                              usuario_actual=usuario_actual,
-                             roles=roles,
                              error=error,
                              success=success)
+    
+    @staticmethod
+    def get_camara(id_camaras):
+        """Get camera data by ID for editing"""
+        try:
+            cur = mysql.connection.cursor()
+            
+            cur.execute("""
+                SELECT c.id_camaras, c.correo, c.nombre, c.estado, c.regional,
+                       c.fecha_creacion, c.fecha_ultima_modificacion, c.cambio_password,
+                       c.usuario_id, c.latitud, c.longitud,
+                       u.nombre as usuario_nombre
+                FROM camaras c
+                LEFT JOIN usuarios u ON c.usuario_id = u.id
+                WHERE c.id_camaras = %s
+            """, (id_camaras,))
+            
+            camara = cur.fetchone()
+            cur.close()
+            
+            if camara:
+                return jsonify({
+                    'success': True,
+                    'camara': {
+                        'id_camaras': camara['id_camaras'],
+                        'correo': camara['correo'],
+                        'nombre': camara['nombre'],
+                        'estado': camara['estado'],
+                        'regional': camara['regional'],
+                        'fecha_creacion': camara['fecha_creacion'].strftime('%Y-%m-%d') if camara['fecha_creacion'] else '',
+                        'usuario_id': camara['usuario_id'],
+                        'latitud': float(camara['latitud']) if camara['latitud'] else '',
+                        'longitud': float(camara['longitud']) if camara['longitud'] else '',
+                        'usuario_nombre': camara['usuario_nombre']
+                    }
+                })
+            else:
+                return jsonify({'success': False, 'message': 'Cámara no encontrada'})
+                
+        except Exception as e:
+            return jsonify({'success': False, 'message': f'Error: {str(e)}'})

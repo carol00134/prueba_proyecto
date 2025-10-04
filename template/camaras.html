@@ -97,24 +97,19 @@
         
         <div class="col-md-4">
           <div class="form-group">
-            <label for="rol_id">Rol del Sistema</label>
-            <select class="form-control" name="rol_id" id="rol_id">
-              <option value="">Seleccionar rol del sistema</option>
-              {% if roles %}
-                {% for rol in roles %}
-                <option value="{{ rol.id }}" 
-                        {% if usuario_actual and usuario_actual.rol and rol.nombre.lower() == usuario_actual.rol.lower() %}selected{% endif %}>
-                  {{ rol.nombre|title }}
-                  {% if usuario_actual and usuario_actual.rol and rol.nombre.lower() == usuario_actual.rol.lower() %} - Rol actual{% endif %}
-                </option>
-                {% endfor %}
-              {% endif %}
-            </select>
-            {% if usuario_actual and usuario_actual.rol %}
-            <small class="form-text text-muted">
-              <i class="fas fa-info-circle me-1"></i>Rol preseleccionado: {{ usuario_actual.rol|title }}
-            </small>
-            {% endif %}
+            <label for="latitud">Latitud</label>
+            <input type="number" class="form-control" name="latitud" id="latitud" 
+                   step="0.000001" min="-90" max="90"
+                   placeholder="Ej: 14.0723 (Entre -90 y 90)">
+          </div>
+        </div>
+        
+        <div class="col-md-4">
+          <div class="form-group">
+            <label for="longitud">Longitud</label>
+            <input type="number" class="form-control" name="longitud" id="longitud" 
+                   step="0.000001" min="-180" max="180"
+                   placeholder="Ej: -87.1921 (Entre -180 y 180)">
           </div>
         </div>
         
@@ -150,7 +145,7 @@
             <th>Nombre</th>
             <th>Correo</th>
             <th>Usuario del Sistema</th>
-            <th>Rol</th>
+            <th>Coordenadas</th>
             <th>Estado</th>
             <th>Regional</th>
             <th>Acciones</th>
@@ -171,10 +166,15 @@
                 {% endif %}
               </td>
               <td>
-                {% if camara.rol_nombre %}
-                  <span class="badge bg-secondary">{{ camara.rol_nombre }}</span>
+                {% if camara.latitud and camara.longitud %}
+                  <small class="text-success">
+                    <i class="fas fa-map-pin me-1"></i>
+                    {{ "%.6f"|format(camara.latitud) }}, {{ "%.6f"|format(camara.longitud) }}
+                  </small>
                 {% else %}
-                  <span class="text-muted">Sin rol</span>
+                  <span class="text-muted">
+                    <i class="fas fa-map-pin me-1"></i>Sin coordenadas
+                  </span>
                 {% endif %}
               </td>
               <td>
@@ -287,19 +287,19 @@
       <div class="row mt-3">
         <div class="col-md-4">
           <div class="form-group">
-            <label>Rol del Sistema</label>
-            <select class="form-control" name="rol_id" id="edit_rol_id">
-              <option value="">Seleccionar rol del sistema</option>
-              {% if roles %}
-                {% for rol in roles %}
-                <option value="{{ rol.id }}" 
-                        {% if usuario_actual and usuario_actual.rol and rol.nombre.lower() == usuario_actual.rol.lower() %}selected{% endif %}>
-                  {{ rol.nombre|title }}
-                  {% if usuario_actual and usuario_actual.rol and rol.nombre.lower() == usuario_actual.rol.lower() %} - Rol actual{% endif %}
-                </option>
-                {% endfor %}
-              {% endif %}
-            </select>
+            <label>Latitud</label>
+            <input type="number" class="form-control" name="latitud" id="edit_latitud" 
+                   step="0.000001" min="-90" max="90"
+                   placeholder="Ej: 14.0723 (Entre -90 y 90)">
+          </div>
+        </div>
+        
+        <div class="col-md-4">
+          <div class="form-group">
+            <label>Longitud</label>
+            <input type="number" class="form-control" name="longitud" id="edit_longitud" 
+                   step="0.000001" min="-180" max="180"
+                   placeholder="Ej: -87.1921 (Entre -180 y 180)">
           </div>
         </div>
         
@@ -340,7 +340,8 @@ function editarCamara(id) {
         document.getElementById('edit_estado').value = data.camara.estado || '1';
         document.getElementById('edit_regional').value = data.camara.regional || '';
         document.getElementById('edit_usuario_id').value = data.camara.usuario_id || '';
-        document.getElementById('edit_rol_id').value = data.camara.rol_id || '';
+        document.getElementById('edit_latitud').value = data.camara.latitud || '';
+        document.getElementById('edit_longitud').value = data.camara.longitud || '';
         
         // Manejar fecha de creación
         if (data.camara.fecha_creacion) {

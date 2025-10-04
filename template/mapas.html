@@ -11,21 +11,290 @@
 {% endblock %}
 
 {% block content %}
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="{{ url_for('static', filename='mapas.css') }}">
 
-<style>
-  #map { height: 180px; }
-</style>
-<div class="container-fluid px-4">
-  <div class="alert alert-info">
-    <i class="fas fa-info-circle me-2"></i>
-    El contenido del mapa se implementará próximamente.
-    
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">
+            <i class="fas fa-map-marked-alt me-2"></i>
+            Mapa Interactivo - Puntos Geográficos y Cámaras
+          </h3>
+        </div>
+        <div class="card-body">
+          <!-- Controles del mapa -->
+          <div class="map-controls">
+            <div class="row">
+              <div class="col-md-4">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="showPuntos" checked>
+                  <label class="form-check-label" for="showPuntos">
+                    <i class="fas fa-map-pin text-primary"></i> Mostrar Puntos Geográficos
+                  </label>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="showCamaras" checked>
+                  <label class="form-check-label" for="showCamaras">
+                    <i class="fas fa-video text-success"></i> Mostrar Información de Cámaras
+                  </label>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <button class="btn btn-outline-secondary btn-sm" onclick="recargarDatos()">
+                  <i class="fas fa-sync-alt me-1"></i> Actualizar Datos
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Indicador de carga -->
+          <div id="loading" class="loading-indicator d-none">
+            <i class="fas fa-spinner"></i>
+            <span class="ms-2">Cargando datos...</span>
+          </div>
+
+          <div id="map"></div>
+        </div>
+      </div>
+    </div>
   </div>
-
-  <div id="map"></div>
-
-  
 </div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+// Variables globales
+let map;
+let puntosLayer;
+let camarasLayer;
+let camarasControl;
+
+// Inicializar el mapa
+function initMap() {
+  // Crear el mapa centrado en Honduras
+  map = L.map('map').setView([14.8, -86.5], 7);
+  
+  // Agregar capa de mapa base
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  }).addTo(map);
+
+  // Inicializar capas
+  puntosLayer = L.layerGroup().addTo(map);
+  camarasLayer = L.layerGroup().addTo(map);
+
+  // Agregar leyenda
+  agregarLeyenda();
+}
+
+// Iconos personalizados
+const puntoIcon = L.divIcon({
+  html: '<i class="fas fa-map-pin" style="color: #007bff; font-size: 24px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);"></i>',
+  iconSize: [24, 24],
+  className: 'custom-div-icon'
+});
+
+const camaraIcon = L.divIcon({
+  html: '<i class="fas fa-video" style="color: #28a745; font-size: 20px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);"></i>',
+  iconSize: [20, 20],
+  className: 'custom-div-icon'
+});
+
+// Función para mostrar indicador de carga
+function mostrarCarga(mostrar = true) {
+  const loading = document.getElementById('loading');
+  if (mostrar) {
+    loading.classList.remove('d-none');
+  } else {
+    loading.classList.add('d-none');
+  }
+}
+
+// Función para cargar puntos geográficos
+async function cargarPuntosGeograficos() {
+  try {
+    mostrarCarga(true);
+    const response = await fetch('/api/puntos-geograficos');
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const geojson = await response.json();
+    
+    // Limpiar capa anterior
+    puntosLayer.clearLayers();
+    
+    if (geojson.features && geojson.features.length > 0) {
+      let bounds = L.latLngBounds();
+      
+      geojson.features.forEach(feature => {
+        const coords = feature.geometry.coordinates;
+        const props = feature.properties;
+        
+        const latLng = L.latLng(coords[1], coords[0]);
+        bounds.extend(latLng);
+        
+        const marker = L.marker(latLng, { icon: puntoIcon })
+          .bindPopup(`
+            <div class="info-panel">
+              <h6><i class="fas fa-map-pin text-primary"></i> ${props.nombre}</h6>
+              <p><strong>Descripción:</strong> ${props.descripcion || 'Sin descripción'}</p>
+              <p><strong>Ubicación:</strong> ${props.departamento}, ${props.municipio}</p>
+              <p><strong>Dirección:</strong> ${props.direccion || 'No especificada'}</p>
+              <p><strong>Coordenadas:</strong> ${coords[1].toFixed(6)}, ${coords[0].toFixed(6)}</p>
+              <small class="text-muted">Registrado: ${new Date(props.fecha_registro).toLocaleDateString('es-ES')}</small>
+            </div>
+          `, {
+            maxWidth: 350,
+            className: 'custom-popup'
+          });
+        
+        puntosLayer.addLayer(marker);
+      });
+      
+      // Ajustar vista del mapa a los puntos
+      if (bounds.isValid()) {
+        map.fitBounds(bounds.pad(0.1));
+      }
+      
+      console.log(`Cargados ${geojson.features.length} puntos geográficos`);
+    } else {
+      console.log('No se encontraron puntos geográficos');
+      // Mostrar mensaje al usuario
+      L.popup()
+        .setLatLng([14.8, -86.5])
+        .setContent('<div class="alert alert-info">No hay puntos geográficos registrados</div>')
+        .openOn(map);
+    }
+  } catch (error) {
+    console.error('Error al cargar puntos geográficos:', error);
+    // Mostrar error al usuario
+    L.popup()
+      .setLatLng([14.8, -86.5])
+      .setContent('<div class="alert alert-danger">Error al cargar puntos geográficos</div>')
+      .openOn(map);
+  } finally {
+    mostrarCarga(false);
+  }
+}
+
+// Función para cargar información de cámaras
+async function cargarCamaras() {
+  try {
+    const response = await fetch('/api/camaras');
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const geojson = await response.json();
+    
+    // Limpiar capa anterior
+    camarasLayer.clearLayers();
+    
+    if (geojson.features && geojson.features.length > 0) {
+      geojson.features.forEach(feature => {
+        const coords = feature.geometry.coordinates;
+        const props = feature.properties;
+        
+        const latLng = L.latLng(coords[1], coords[0]);
+        
+        const marker = L.marker(latLng, { icon: camaraIcon })
+          .bindPopup(`
+            <div class="info-panel">
+              <h6><i class="fas fa-video text-success"></i> ${props.nombre}</h6>
+              <p><strong>ID:</strong> ${props.id}</p>
+              <p><strong>Regional:</strong> ${props.regional || 'No especificada'}</p>
+              <p><strong>Correo:</strong> ${props.correo}</p>
+              <p><strong>Coordenadas:</strong> ${coords[1].toFixed(6)}, ${coords[0].toFixed(6)}</p>
+              <small class="text-muted">Registrada: ${props.fecha_creacion ? new Date(props.fecha_creacion).toLocaleDateString('es-ES') : 'No especificada'}</small>
+            </div>
+          `, {
+            maxWidth: 350,
+            className: 'custom-popup'
+          });
+        
+        camarasLayer.addLayer(marker);
+      });
+      
+      console.log(`Cargadas ${geojson.features.length} cámaras en el mapa`);
+    } else {
+      console.log('No se encontraron cámaras con coordenadas');
+    }
+  } catch (error) {
+    console.error('Error al cargar cámaras:', error);
+  }
+}
+
+// Función para agregar leyenda
+function agregarLeyenda() {
+  const legend = L.control({position: 'bottomright'});
+  legend.onAdd = function(map) {
+    const div = L.DomUtil.create('div', 'legend');
+    div.innerHTML = `
+      <h6>Leyenda</h6>
+      <div class="legend-item">
+        <div class="legend-color" style="background-color: #007bff;"></div>
+        <span>Puntos Geográficos</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background-color: #28a745;"></div>
+        <span>Cámaras</span>
+      </div>
+    `;
+    
+    // Prevenir que los clics en la leyenda afecten el mapa
+    L.DomEvent.disableClickPropagation(div);
+    
+    return div;
+  };
+  legend.addTo(map);
+}
+
+// Controles para mostrar/ocultar capas
+document.getElementById('showPuntos').addEventListener('change', function() {
+  if (this.checked) {
+    map.addLayer(puntosLayer);
+  } else {
+    map.removeLayer(puntosLayer);
+  }
+});
+
+document.getElementById('showCamaras').addEventListener('change', function() {
+  if (this.checked) {
+    map.addLayer(camarasLayer);
+  } else {
+    map.removeLayer(camarasLayer);
+  }
+});
+
+// Función para recargar datos
+function recargarDatos() {
+  Promise.all([cargarPuntosGeograficos(), cargarCamaras()]).then(() => {
+    // Ajustar vista del mapa a todos los puntos
+    const allLayers = [...puntosLayer.getLayers(), ...camarasLayer.getLayers()];
+    if (allLayers.length > 0) {
+      const group = new L.featureGroup(allLayers);
+      map.fitBounds(group.getBounds().pad(0.1));
+    }
+  });
+}
+
+// Inicializar aplicación
+document.addEventListener('DOMContentLoaded', function() {
+  initMap();
+  recargarDatos();
+  
+  // Recargar datos cada 10 minutos
+  setInterval(recargarDatos, 600000); // 10 minutos
+});
+</script>
+
 {% endblock %}
