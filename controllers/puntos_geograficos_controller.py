@@ -1,5 +1,6 @@
 from flask import render_template, request, session
 from config import mysql
+from controllers.bitacora_controller import BitacoraController
 
 class PuntosGeograficosController:
     @staticmethod
@@ -38,11 +39,44 @@ class PuntosGeograficosController:
                         mysql.connection.commit()
                         success = f'Punto geográfico "{nombre}" agregado exitosamente'
                         
+                        # Registrar en bitácora
+                        BitacoraController.registrar_accion(
+                            accion='CREATE',
+                            modulo='Puntos Geográficos',
+                            descripcion=f'Creó el punto geográfico "{nombre}" en {direccion or "ubicación no especificada"}',
+                            datos_nuevos={
+                                'nombre': nombre,
+                                'descripcion': descripcion,
+                                'departamento_id': departamento_id,
+                                'municipio_id': municipio_id,
+                                'direccion': direccion,
+                                'latitud': latitud,
+                                'longitud': longitud
+                            }
+                        )
+                        
                 elif accion == 'eliminar':
                     punto_id = request.form.get('id')
+                    
+                    # Obtener datos del punto antes de eliminar
+                    cur.execute("SELECT nombre, direccion FROM puntos_geograficos WHERE id = %s", (punto_id,))
+                    punto_data = cur.fetchone()
+                    
                     cur.execute("DELETE FROM puntos_geograficos WHERE id = %s", (punto_id,))
                     mysql.connection.commit()
                     success = 'Punto geográfico eliminado exitosamente'
+                    
+                    # Registrar en bitácora
+                    BitacoraController.registrar_accion(
+                        accion='DELETE',
+                        modulo='Puntos Geográficos',
+                        descripcion=f'Eliminó el punto geográfico' + (f' "{punto_data["nombre"]}"' if punto_data else f' ID {punto_id}'),
+                        datos_anteriores={
+                            'id': punto_id,
+                            'nombre': punto_data['nombre'] if punto_data else None,
+                            'direccion': punto_data['direccion'] if punto_data else None
+                        }
+                    )
                 
                 elif accion == 'editar':
                     punto_id = request.form.get('id')
@@ -69,6 +103,23 @@ class PuntosGeograficosController:
                         
                         mysql.connection.commit()
                         success = f'Punto geográfico "{nombre}" actualizado exitosamente'
+                        
+                        # Registrar en bitácora
+                        BitacoraController.registrar_accion(
+                            accion='UPDATE',
+                            modulo='Puntos Geográficos',
+                            descripcion=f'Actualizó el punto geográfico "{nombre}"',
+                            datos_nuevos={
+                                'id': punto_id,
+                                'nombre': nombre,
+                                'descripcion': descripcion,
+                                'departamento_id': departamento_id,
+                                'municipio_id': municipio_id,
+                                'direccion': direccion,
+                                'latitud': latitud,
+                                'longitud': longitud
+                            }
+                        )
                     
             except Exception as e:
                 error = f'Error: {str(e)}'
@@ -77,6 +128,13 @@ class PuntosGeograficosController:
         
         # Obtener datos para mostrar
         cur = mysql.connection.cursor()
+        
+        # Registrar acceso al módulo de puntos geográficos
+        BitacoraController.registrar_accion(
+            accion='VIEW',
+            modulo='Puntos Geográficos',
+            descripcion='Accedió al módulo de puntos geográficos'
+        )
         
         # Obtener departamentos
         cur.execute("SELECT id, nombre FROM departamentos ORDER BY nombre")

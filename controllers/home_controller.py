@@ -1,5 +1,6 @@
 from flask import render_template, redirect, session
 from config import mysql
+from controllers.bitacora_controller import BitacoraController
 
 class HomeController:
     @staticmethod
@@ -32,6 +33,15 @@ class HomeController:
             estado_bd = "En línea"
             
             cur.close()
+            
+            # Registrar acceso al dashboard (solo ocasionalmente para evitar spam)
+            import random
+            if random.randint(1, 10) == 1:  # Solo 10% de las veces
+                BitacoraController.registrar_accion(
+                    accion='VIEW',
+                    modulo='Dashboard',
+                    descripcion='Accedió al dashboard principal'
+                )
             
             return render_template('index.html', 
                                  usuarios_activos=usuarios_activos,

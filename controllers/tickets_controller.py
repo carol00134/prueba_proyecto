@@ -2,6 +2,7 @@ from flask import render_template, request, redirect, jsonify, session
 import uuid
 import datetime
 from config import mysql
+from controllers.bitacora_controller import BitacoraController
 
 def generar_id_ticket():
     """Genera un ID único para tickets en formato: TC + YYYYMMDD + 10 """
@@ -161,6 +162,15 @@ class TicketsController:
                     # Eliminar ticket
                     cur.execute("DELETE FROM tickets WHERE id = %s", (ticket_id,))
                     mysql.connection.commit()
+                    
+                    # Registrar en bitácora
+                    BitacoraController.registrar_accion(
+                        accion='DELETE',
+                        modulo='Tickets',
+                        descripcion=f'Eliminó el ticket {ticket_id}',
+                        datos_anteriores={'ticket_id': ticket_id}
+                    )
+                    
                     cur.close()
                     
                     return jsonify({'success': True, 'message': 'Ticket eliminado'})
@@ -207,6 +217,22 @@ class TicketsController:
                     
                     ticket_id = nuevo_ticket_id
                     message = f'Ticket {ticket_id} creado exitosamente'
+                    
+                    # Registrar en bitácora
+                    BitacoraController.registrar_accion(
+                        accion='CREATE',
+                        modulo='Tickets',
+                        descripcion=f'Creó el ticket {ticket_id} en {regional or "Sin regional"}',
+                        datos_nuevos={
+                            'ticket_id': ticket_id,
+                            'fecha': fecha,
+                            'regional': regional,
+                            'departamento_id': id_departamento,
+                            'municipio_id': id_municipio,
+                            'tipologia_id': id_tipologia,
+                            'descripcion': descripcion[:100] if descripcion else None
+                        }
+                    )
                 else:
                     # Actualizar ticket existente
                     if latitud and longitud:
@@ -235,6 +261,22 @@ class TicketsController:
                     cur.execute("DELETE FROM ticket_unidad WHERE ticket_id = %s", (ticket_id,))
                     
                     message = f'Ticket #{ticket_id} actualizado exitosamente'
+                    
+                    # Registrar en bitácora
+                    BitacoraController.registrar_accion(
+                        accion='UPDATE',
+                        modulo='Tickets',
+                        descripcion=f'Actualizó el ticket {ticket_id}',
+                        datos_nuevos={
+                            'ticket_id': ticket_id,
+                            'fecha': fecha,
+                            'regional': regional,
+                            'departamento_id': id_departamento,
+                            'municipio_id': id_municipio,
+                            'tipologia_id': id_tipologia,
+                            'descripcion': descripcion[:100] if descripcion else None
+                        }
+                    )
                 
                 # Agregar asignaciones de despachos
                 despachos_seleccionados = request.form.getlist('despachos')
@@ -262,6 +304,13 @@ class TicketsController:
         # GET - Mostrar página
         try:
             cur = mysql.connection.cursor()
+            
+            # Registrar acceso al módulo de tickets
+            BitacoraController.registrar_accion(
+                accion='VIEW',
+                modulo='Tickets',
+                descripcion='Accedió al módulo de gestión de tickets'
+            )
             
             # Obtener todos los tickets
             cur.execute("""
@@ -438,6 +487,13 @@ class TicketsController:
         """Show detailed view of a specific ticket"""
         try:
             cur = mysql.connection.cursor()
+            
+            # Registrar acceso al detalle del ticket
+            BitacoraController.registrar_accion(
+                accion='VIEW',
+                modulo='Tickets',
+                descripcion=f'Consultó detalles del ticket {ticket_id}'
+            )
             
             # Obtener datos completos del ticket
             cur.execute("""

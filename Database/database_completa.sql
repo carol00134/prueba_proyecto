@@ -279,7 +279,11 @@ INSERT INTO municipios (nombre, departamento_id) VALUES
 ('Tocoa', 3),
 ('Sonaguera', 3),
 ('Ares', 3); -- Note: Ares is not a municipality. Assuming Bonito Oriental:
--- ('Bonito Oriental', 3); 
+-- ('Bonito Oriental', 3); Ahora voy a crear un script que te ayude a visualizar los roles y sus permisos de manera clara. Primero, revisaré cómo está estructurado el sistema actual:
+
+Created analizar_roles_permisos.py
+
+
 
 INSERT INTO municipios (nombre, departamento_id) VALUES
 ('Comayagua', 4),
@@ -756,6 +760,92 @@ SELECT
 -- =====================================================
 
 
-ALTER TABLE municipios AUTO_INCREMENT = 1;
+ALTER TABLE modulos AUTO_INCREMENT = 1;
 
 INSERT INTO usuarios (usuario, contraseña, nombre, activo) VALUES ('admin', 'scrypt:32768:8:1$kUS26PJ9fRBibWbU$931377aa48e46e1d0a943a99d0ece7f94827f8fe47a6d6b8a003ffae43efc7282d883a4f2066978e5e88843eaa9fb5445ddd67b1dd31f77d38468f039c399455', 'Administrador', 1);
+
+
+CREATE TABLE acciones (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE acceso_modulo_accion (
+    rol_id INT NOT NULL,
+    modulo_id INT NOT NULL,
+    accion_id INT NOT NULL,
+    PRIMARY KEY (rol_id, modulo_id, accion_id),
+    FOREIGN KEY (rol_id) REFERENCES roles(id) ON DELETE CASCADE,
+    FOREIGN KEY (modulo_id) REFERENCES modulos(id) ON DELETE CASCADE,
+    FOREIGN KEY (accion_id) REFERENCES acciones(id) ON DELETE CASCADE
+);
+
+
+
+-- 1. POBLAR TABLA ROLES
+INSERT INTO roles (nombre) VALUES 
+('administrador'),   -- id=1
+('operador'),        -- id=2
+('supervisor');      -- id=3
+
+-- 2. POBLAR TABLA MODULOS
+INSERT INTO modulos (nombre) VALUES
+('tickets'),           -- id=1
+('mapas'),             -- id=2
+('usuarios'),          -- id=3
+('camaras'),           -- id=4
+('puntos_geograficos'),-- id=5
+('bitacora');          -- id=6
+
+-- 3. POBLAR TABLA ACCIONES
+INSERT INTO acciones (nombre) VALUES
+('ver'),     -- id=1
+('crear'),   -- id=2
+('editar'),  -- id=3
+('eliminar');-- id=4
+
+-- 4. POBLAR TABLA acceso_modulo_accion
+
+-- -------------------------------------------
+-- ADMINISTRADOR: acceso total a todos módulos y acciones,
+-- excepto bitacora que solo puede "ver"
+-- -------------------------------------------
+-- Todos los permisos para todos los módulos menos bitacora
+INSERT INTO acceso_modulo_accion (rol_id, modulo_id, accion_id)
+SELECT 1, m.id, a.id FROM modulos m, acciones a WHERE m.nombre <> 'bitacora';
+
+-- Solo "ver" para bitacora
+INSERT INTO acceso_modulo_accion (rol_id, modulo_id, accion_id)
+SELECT 1, m.id, a.id FROM modulos m, acciones a WHERE m.nombre = 'bitacora' AND a.nombre = 'ver';
+
+-- -------------------------------------------
+-- OPERADOR
+-- -------------------------------------------
+-- Tickets: ver, crear, editar
+INSERT INTO acceso_modulo_accion (rol_id, modulo_id, accion_id)
+VALUES (2, 1, 1), (2, 1, 2), (2, 1, 3);
+-- Mapas: ver
+INSERT INTO acceso_modulo_accion (rol_id, modulo_id, accion_id)
+VALUES (2, 2, 1);
+-- Cámaras: ver
+INSERT INTO acceso_modulo_accion (rol_id, modulo_id, accion_id)
+VALUES (2, 4, 1);
+-- Puntos geograficos: crear, editar
+INSERT INTO acceso_modulo_accion (rol_id, modulo_id, accion_id)
+VALUES (2, 5, 2), (2, 5, 3);
+
+-- -------------------------------------------
+-- SUPERVISOR
+-- -------------------------------------------
+-- Tickets: ver, crear, editar
+INSERT INTO acceso_modulo_accion (rol_id, modulo_id, accion_id)
+VALUES (3, 1, 1), (3, 1, 2), (3, 1, 3);
+-- Mapas: ver
+INSERT INTO acceso_modulo_accion (rol_id, modulo_id, accion_id)
+VALUES (3, 2, 1);
+-- Cámaras: ver, crear, editar
+INSERT INTO acceso_modulo_accion (rol_id, modulo_id, accion_id)
+VALUES (3, 4, 1), (3, 4, 2), (3, 4, 3);
+-- Puntos geograficos: crear, editar
+INSERT INTO acceso_modulo_accion (rol_id, modulo_id, accion_id)
+VALUES (3, 5, 2), (3, 5, 3);

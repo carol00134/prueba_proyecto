@@ -1,5 +1,6 @@
 from flask import render_template, request, jsonify, session
 from config import mysql
+from controllers.bitacora_controller import BitacoraController
 
 class CamarasController:
     @staticmethod
@@ -115,12 +116,45 @@ class CamarasController:
                                 
                                 mysql.connection.commit()
                                 success = f'Cámara "{nombre}" agregada exitosamente'
+                                
+                                # Registrar en bitácora
+                                BitacoraController.registrar_accion(
+                                    accion='CREATE',
+                                    modulo='Cámaras',
+                                    descripcion=f'Creó la cámara {id_camaras} ({nombre}) en regional {regional or "Sin especificar"}',
+                                    datos_nuevos={
+                                        'id_camaras': id_camaras,
+                                        'nombre': nombre,
+                                        'correo': correo,
+                                        'estado': estado,
+                                        'regional': regional,
+                                        'latitud': latitud_val,
+                                        'longitud': longitud_val
+                                    }
+                                )
                     
                 elif accion == 'eliminar':
                     id_camaras = request.form.get('id_camaras')
+                    
+                    # Obtener datos de la cámara antes de eliminar para la bitácora
+                    cur.execute("SELECT nombre, regional FROM camaras WHERE id_camaras = %s", (id_camaras,))
+                    camara_data = cur.fetchone()
+                    
                     cur.execute("DELETE FROM camaras WHERE id_camaras = %s", (id_camaras,))
                     mysql.connection.commit()
                     success = 'Cámara eliminada exitosamente'
+                    
+                    # Registrar en bitácora
+                    BitacoraController.registrar_accion(
+                        accion='DELETE',
+                        modulo='Cámaras',
+                        descripcion=f'Eliminó la cámara {id_camaras}' + (f' ({camara_data["nombre"]})' if camara_data else ''),
+                        datos_anteriores={
+                            'id_camaras': id_camaras,
+                            'nombre': camara_data['nombre'] if camara_data else None,
+                            'regional': camara_data['regional'] if camara_data else None
+                        }
+                    )
                 
                 elif accion == 'editar':
                     # Obtener datos del formulario para editar
@@ -187,6 +221,23 @@ class CamarasController:
                             
                             mysql.connection.commit()
                             success = f'Cámara "{nombre}" actualizada exitosamente'
+                            
+                            # Registrar en bitácora
+                            BitacoraController.registrar_accion(
+                                accion='UPDATE',
+                                modulo='Cámaras',
+                                descripcion=f'Actualizó la cámara {id_camaras} ({nombre})',
+                                datos_nuevos={
+                                    'id_camaras': id_camaras,
+                                    'id_camaras_original': id_camaras_original,
+                                    'nombre': nombre,
+                                    'correo': correo,
+                                    'estado': estado,
+                                    'regional': regional,
+                                    'latitud': latitud_val,
+                                    'longitud': longitud_val
+                                }
+                            )
                     
                     # Si es una petición AJAX para editar, retornar JSON
                     if accion == 'editar':
@@ -205,6 +256,13 @@ class CamarasController:
         
         # Obtener datos para mostrar
         cur = mysql.connection.cursor()
+        
+        # Registrar acceso al módulo de cámaras
+        BitacoraController.registrar_accion(
+            accion='VIEW',
+            modulo='Cámaras',
+            descripcion='Accedió al módulo de gestión de cámaras'
+        )
         
         # Obtener cámaras con información de usuario y coordenadas
         cur.execute("""

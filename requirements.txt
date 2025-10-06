@@ -1,20 +1,21 @@
-# SISTEMA DE APRENDIZAJE FLASK - DEPENDENCIAS
+# SISTEMA 911 - DEPENDENCIAS
 # =============================================
 # Este archivo contiene todas las dependencias necesarias para ejecutar
-# el sistema de aprendizaje Flask.
+# el sistema de emergencias 911.
 #
 # INSTALACIÓN:
 # pip install -r requirements.txt
-#
-# CONCEPTO: requirements.txt es la forma estándar de definir dependencias
-# en proyectos Python, permitiendo recrear el mismo ambiente en cualquier máquina.
 
 # Framework principal
 Flask==3.0.0
-# CONCEPTO: Flask es el microframework web que usamos como base del sistema
 
-# Base de datos (incluida en Python, pero especificamos para claridad)
-# SQLite3 viene incluido con Python estándar
+# Base de datos MySQL
+Flask-MySQLdb==2.0.0
+mysqlclient==2.2.0
+
+# Para bases de datos en línea (Aiven, PlanetScale, etc.)
+PyMySQL==1.1.0
+cryptography==41.0.7
 
 # Utilidades adicionales para Flask
 Werkzeug==3.0.1

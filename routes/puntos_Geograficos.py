@@ -3,6 +3,6 @@ from controllers.puntos_geograficos_controller import PuntosGeograficosControlle
 
 puntos_geograficos_routes = Blueprint('puntos_geograficos_routes', __name__)
 
-# Geographic points routes
+
 puntos_geograficos_routes.add_url_rule('/puntoGeografico', 'puntoGeografico', PuntosGeograficosController.puntos_geograficos, methods=['GET', 'POST'])
 puntos_geograficos_routes.add_url_rule('/puntos_geograficos', 'puntos_geograficos', PuntosGeograficosController.puntos_geograficos, methods=['GET', 'POST'])

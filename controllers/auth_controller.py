@@ -25,10 +25,33 @@ class AuthController:
             if user:
                 if check_password_hash(user['contraseña'], password):
                     session['usuario'] = username
+                    
+                    # Registrar login en bitácora
+                    from controllers.bitacora_controller import BitacoraController
+                    BitacoraController.registrar_accion(
+                        accion='LOGIN',
+                        modulo='Autenticación',
+                        descripcion=f'Usuario {username} inició sesión exitosamente'
+                    )
+                    
                     return redirect('/')
                 else:
+                    # Registrar intento fallido en bitácora
+                    from controllers.bitacora_controller import BitacoraController
+                    BitacoraController.registrar_accion(
+                        accion='LOGIN_FAILED',
+                        modulo='Autenticación',
+                        descripcion=f'Intento de login fallido para usuario {username} - Contraseña incorrecta'
+                    )
                     return render_template('login.html', error='Contraseña incorrecta')
             else:
+                # Registrar intento fallido en bitácora
+                from controllers.bitacora_controller import BitacoraController
+                BitacoraController.registrar_accion(
+                    accion='LOGIN_FAILED',
+                    modulo='Autenticación',
+                    descripcion=f'Intento de login fallido - Usuario {username} no encontrado'
+                )
                 return render_template('login.html', error='Usuario no encontrado')
         return render_template('login.html')
 
@@ -49,5 +72,14 @@ class AuthController:
     @staticmethod
     def logout():
         """Handle user logout"""
+        # Registrar logout en bitácora antes de cerrar sesión
+        if 'usuario' in session:
+            from controllers.bitacora_controller import BitacoraController
+            BitacoraController.registrar_accion(
+                accion='LOGOUT',
+                modulo='Autenticación',
+                descripcion=f'Usuario {session["usuario"]} cerró sesión'
+            )
+        
         session.pop('usuario', None)
         return redirect('/login')

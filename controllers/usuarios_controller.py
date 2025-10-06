@@ -1,12 +1,22 @@
 from flask import render_template, request, session
 from werkzeug.security import generate_password_hash
 from config import mysql
+from utils.bitacora_decorator import registrar_bitacora, registrar_cambios_bitacora
+from controllers.bitacora_controller import BitacoraController
 
 class UsuariosController:
     @staticmethod
     def usuarios():
         """Handle users management (list, create, edit, delete)"""
+        # Obtener datos para mostrar
         cur = mysql.connection.cursor()
+        
+        # Registrar acceso al módulo de usuarios
+        BitacoraController.registrar_accion(
+            accion='VIEW',
+            modulo='Usuarios',
+            descripcion='Accedió al módulo de gestión de usuarios'
+        )
         usuario_editar = None
         error = None
         success = None
@@ -66,6 +76,20 @@ class UsuariosController:
                                     # Confirmar transacción
                                     mysql.connection.commit()
                                     success = f'Usuario {username} creado exitosamente con rol {rol}'
+                                    
+                                    # Registrar en bitácora
+                                    BitacoraController.registrar_accion(
+                                        accion='CREATE',
+                                        modulo='Usuarios',
+                                        descripcion=f'Creó el usuario {username} ({nombre}) con rol {rol} en regional {regional}',
+                                        datos_nuevos={
+                                            'usuario': username,
+                                            'nombre': nombre,
+                                            'rol': rol,
+                                            'activo': activo,
+                                            'regional': regional
+                                        }
+                                    )
                                 except Exception as e:
                                     # Revertir cambios si hay error
                                     mysql.connection.rollback()
@@ -143,6 +167,21 @@ class UsuariosController:
                                     mysql.connection.commit()
                                     success = f'Usuario {username} actualizado exitosamente con rol {rol}'
                                     usuario_editar = None
+                                    
+                                    # Registrar en bitácora
+                                    BitacoraController.registrar_accion(
+                                        accion='UPDATE',
+                                        modulo='Usuarios',
+                                        descripcion=f'Actualizó el usuario {username} ({nombre}) - Rol: {rol}, Estado: {"Activo" if activo else "Inactivo"}, Regional: {regional}',
+                                        datos_nuevos={
+                                            'usuario': username,
+                                            'nombre': nombre,
+                                            'rol': rol,
+                                            'activo': activo,
+                                            'regional': regional,
+                                            'password_changed': bool(password and password.strip())
+                                        }
+                                    )
                                 except Exception as e:
                                     # Revertir cambios si hay error
                                     mysql.connection.rollback()
@@ -194,6 +233,17 @@ class UsuariosController:
                             cur.execute("DELETE FROM usuarios WHERE id = %s", (usuario_id,))
                             mysql.connection.commit()
                             success = f'Usuario {username} eliminado exitosamente'
+                            
+                            # Registrar en bitácora
+                            BitacoraController.registrar_accion(
+                                accion='DELETE',
+                                modulo='Usuarios',
+                                descripcion=f'Eliminó el usuario {username}',
+                                datos_anteriores={
+                                    'usuario': username,
+                                    'accion': 'eliminacion_usuario'
+                                }
+                            )
                 except Exception as e:
                     error = f'Error al eliminar usuario: {str(e)}'
                     
