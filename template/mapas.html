@@ -45,7 +45,7 @@
                 </div>
               </div>
               <div class="col-md-4">
-                <button class="btn btn-outline-secondary btn-sm" onclick="recargarDatos()">
+                <button class="btn btn-outline-secondary btn-sm" onclick="console.log('🔄 Actualización manual solicitada'); recargarDatos()">
                   <i class="fas fa-sync-alt me-1"></i> Actualizar Datos
                 </button>
               </div>
@@ -88,6 +88,10 @@ function initMap() {
   // Inicializar capas
   puntosLayer = L.layerGroup().addTo(map);
   camarasLayer = L.layerGroup().addTo(map);
+  console.log('🗺️ Mapa inicializado. Capas creadas:', {
+    puntosLayer: !!puntosLayer,
+    camarasLayer: !!camarasLayer
+  });
 
   // Agregar leyenda
   agregarLeyenda();
@@ -167,19 +171,11 @@ async function cargarPuntosGeograficos() {
       console.log(`Cargados ${geojson.features.length} puntos geográficos`);
     } else {
       console.log('No se encontraron puntos geográficos');
-      // Mostrar mensaje al usuario
-      L.popup()
-        .setLatLng([14.8, -86.5])
-        .setContent('<div class="alert alert-info">No hay puntos geográficos registrados</div>')
-        .openOn(map);
+      // Solo log, sin mostrar popup automático al usuario
     }
   } catch (error) {
     console.error('Error al cargar puntos geográficos:', error);
-    // Mostrar error al usuario
-    L.popup()
-      .setLatLng([14.8, -86.5])
-      .setContent('<div class="alert alert-danger">Error al cargar puntos geográficos</div>')
-      .openOn(map);
+    // Solo log del error, sin mostrar popup automático
   } finally {
     mostrarCarga(false);
   }
@@ -188,6 +184,7 @@ async function cargarPuntosGeograficos() {
 // Función para cargar información de cámaras
 async function cargarCamaras() {
   try {
+    console.log('🔍 Iniciando carga de cámaras...');
     const response = await fetch('/api/camaras');
     
     if (!response.ok) {
@@ -195,12 +192,16 @@ async function cargarCamaras() {
     }
     
     const geojson = await response.json();
+    console.log('📊 Respuesta del API:', geojson);
+    console.log('🎯 Número de features:', geojson.features ? geojson.features.length : 0);
     
     // Limpiar capa anterior
     camarasLayer.clearLayers();
     
     if (geojson.features && geojson.features.length > 0) {
-      geojson.features.forEach(feature => {
+      console.log('✅ Procesando', geojson.features.length, 'cámaras...');
+      geojson.features.forEach((feature, index) => {
+        console.log(`📹 Procesando cámara ${index + 1}:`, feature.properties.nombre, 'Coords:', feature.geometry.coordinates);
         const coords = feature.geometry.coordinates;
         const props = feature.properties;
         
@@ -211,6 +212,7 @@ async function cargarCamaras() {
             <div class="info-panel">
               <h6><i class="fas fa-video text-success"></i> ${props.nombre}</h6>
               <p><strong>ID:</strong> ${props.id}</p>
+              <p><strong>Estado:</strong> <span class="badge ${props.estado == 1 ? 'bg-success' : 'bg-secondary'}">${props.estado == 1 ? 'Activo' : 'Inactivo'}</span></p>
               <p><strong>Regional:</strong> ${props.regional || 'No especificada'}</p>
               <p><strong>Correo:</strong> ${props.correo}</p>
               <p><strong>Coordenadas:</strong> ${coords[1].toFixed(6)}, ${coords[0].toFixed(6)}</p>
@@ -222,11 +224,13 @@ async function cargarCamaras() {
           });
         
         camarasLayer.addLayer(marker);
+        console.log('📌 Marcador agregado para:', props.nombre, 'en coordenadas:', latLng);
       });
       
-      console.log(`Cargadas ${geojson.features.length} cámaras en el mapa`);
+      console.log(`✅ Cargadas ${geojson.features.length} cámaras en el mapa`);
+      console.log('📊 Total de marcadores en camarasLayer:', camarasLayer.getLayers().length);
     } else {
-      console.log('No se encontraron cámaras con coordenadas');
+      console.log('❌ No se encontraron cámaras con coordenadas');
     }
   } catch (error) {
     console.error('Error al cargar cámaras:', error);
@@ -268,32 +272,45 @@ document.getElementById('showPuntos').addEventListener('change', function() {
 });
 
 document.getElementById('showCamaras').addEventListener('change', function() {
+  console.log('🔄 Checkbox cámaras cambiado a:', this.checked);
+  console.log('📊 Marcadores en camarasLayer:', camarasLayer.getLayers().length);
   if (this.checked) {
     map.addLayer(camarasLayer);
+    console.log('✅ Capa de cámaras agregada al mapa');
   } else {
     map.removeLayer(camarasLayer);
+    console.log('❌ Capa de cámaras removida del mapa');
   }
 });
 
 // Función para recargar datos
 function recargarDatos() {
+  console.log('🔄 Recargando datos del mapa...');
   Promise.all([cargarPuntosGeograficos(), cargarCamaras()]).then(() => {
     // Ajustar vista del mapa a todos los puntos
     const allLayers = [...puntosLayer.getLayers(), ...camarasLayer.getLayers()];
+    console.log('📊 Total de elementos para ajustar vista:', allLayers.length);
     if (allLayers.length > 0) {
       const group = new L.featureGroup(allLayers);
       map.fitBounds(group.getBounds().pad(0.1));
+      console.log('🎯 Vista del mapa ajustada a todos los elementos');
+    } else {
+      console.log('ℹ️ No hay elementos para ajustar la vista del mapa');
     }
   });
 }
 
 // Inicializar aplicación
 document.addEventListener('DOMContentLoaded', function() {
+  console.log('🚀 Inicializando aplicación de mapas...');
   initMap();
   recargarDatos();
   
   // Recargar datos cada 10 minutos
-  setInterval(recargarDatos, 600000); // 10 minutos
+  setInterval(() => {
+    console.log('⏰ Actualización automática programada');
+    recargarDatos();
+  }, 600000); // 10 minutos
 });
 </script>
 

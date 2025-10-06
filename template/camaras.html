@@ -133,9 +133,19 @@
 
   <!-- Lista de cámaras -->
   <div class="table-container">
-    <h4 class="p-4 mb-0 border-bottom">
-      <i class="fas fa-list me-2"></i>Cámaras Registradas
-    </h4>
+    <div class="d-flex justify-content-between align-items-center p-4 mb-0 border-bottom">
+      <h4 class="mb-0">
+        <i class="fas fa-list me-2"></i>Cámaras Registradas
+      </h4>
+      <div class="d-flex gap-2">
+        <a href="{{ url_for('camaras_routes.exportar_camaras_excel') }}" class="btn btn-outline-primary btn-sm">
+          <i class="fas fa-file-export me-1"></i>Exportar a Excel
+        </a>
+        <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalImportarExcel">
+          <i class="fas fa-file-excel me-1"></i>Importar Datos (Excel)
+        </button>
+      </div>
+    </div>
     
     <div class="table-responsive">
       <table class="table">
@@ -327,10 +337,15 @@
 
 <script>
 function editarCamara(id) {
+  console.log('🔧 Iniciando edición de cámara con ID:', id);
   // Obtener datos de la cámara
   fetch('/api/camara/' + id)
-    .then(response => response.json())
+    .then(response => {
+      console.log('📡 Respuesta del servidor:', response.status);
+      return response.json();
+    })
     .then(data => {
+      console.log('📊 Datos recibidos:', data);
       if (data.success) {
         // Llenar el formulario con los datos
         document.getElementById('edit_id_camaras_original').value = data.camara.id_camaras || '';
@@ -357,12 +372,14 @@ function editarCamara(id) {
         
         // Mostrar el modal
         document.getElementById('editModal').style.display = 'block';
+        console.log('✅ Modal de edición mostrado');
       } else {
+        console.error('❌ Error en respuesta:', data.message);
         alert('Error al obtener los datos de la cámara: ' + (data.message || 'Error desconocido'));
       }
     })
     .catch(error => {
-      console.error('Error:', error);
+      console.error('❌ Error en fetch:', error);
       alert('Error al obtener los datos de la cámara');
     });
 }
@@ -374,15 +391,24 @@ function cerrarModal() {
 // Manejar el envío del formulario de edición
 document.getElementById('editForm').addEventListener('submit', function(e) {
   e.preventDefault();
+  console.log('📝 Enviando formulario de edición...');
   
   const formData = new FormData(this);
+  console.log('📋 Datos del formulario:');
+  for (let [key, value] of formData.entries()) {
+    console.log(`   ${key}: ${value}`);
+  }
   
   fetch('/camaras', {
     method: 'POST',
     body: formData
   })
-  .then(response => response.json())
+  .then(response => {
+    console.log('📡 Respuesta del servidor (edición):', response.status);
+    return response.json();
+  })
   .then(data => {
+    console.log('📊 Respuesta de edición:', data);
     if (data.success) {
       alert('Cámara actualizada correctamente');
       location.reload(); // Recargar la página para ver los cambios
@@ -391,7 +417,7 @@ document.getElementById('editForm').addEventListener('submit', function(e) {
     }
   })
   .catch(error => {
-    console.error('Error:', error);
+    console.error('❌ Error en envío:', error);
     alert('Error al actualizar la cámara');
   });
 });
@@ -401,6 +427,152 @@ document.getElementById('editModal').addEventListener('click', function(e) {
   if (e.target === this) {
     cerrarModal();
   }
+});
+</script>
+
+<!-- Modal para importar Excel -->
+<div class="modal fade" id="modalImportarExcel" tabindex="-1" aria-labelledby="modalImportarExcelLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="modalImportarExcelLabel">
+          <i class="fas fa-file-excel me-2"></i>Importar Cámaras desde Excel
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="container-fluid">
+          <div class="row">
+            <div class="col-12">
+             
+              
+              <form id="formImportarExcel" enctype="multipart/form-data">
+                <div class="mb-3">
+                  <label for="archivoExcel" class="form-label fw-bold">
+                    <i class="fas fa-upload me-1"></i>Seleccionar archivo Excel
+                  </label>
+                  <input type="file" 
+                         class="form-control form-control-lg" 
+                         id="archivoExcel" 
+                         name="archivo_excel" 
+                         accept=".xlsx,.xls" 
+                         required>
+                  <div class="form-text">
+                    <i class="fas fa-file-excel me-1 text-success"></i>
+                    Solo archivos Excel (.xlsx, .xls)
+                  </div>
+                </div>
+                
+                <div id="resultadoImportacion" class="alert" style="display: none;"></div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer d-flex justify-content-between">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <i class="fas fa-times me-1"></i>Cancelar
+        </button>
+        <button type="button" class="btn btn-success" id="btnImportar">
+          <i class="fas fa-upload me-1"></i>Importar Datos
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Funcionalidad para importar Excel
+document.getElementById('btnImportar').addEventListener('click', function() {
+  const form = document.getElementById('formImportarExcel');
+  const archivo = document.getElementById('archivoExcel').files[0];
+  const resultado = document.getElementById('resultadoImportacion');
+  const btnImportar = document.getElementById('btnImportar');
+  
+  if (!archivo) {
+    resultado.className = 'alert alert-danger';
+    resultado.style.display = 'block';
+    resultado.innerHTML = '<i class="fas fa-exclamation-circle me-2"></i>Por favor seleccione un archivo Excel.';
+    return;
+  }
+  
+  // Mostrar estado de carga
+  btnImportar.disabled = true;
+  btnImportar.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Importando...';
+  resultado.style.display = 'none';
+  
+  // Crear FormData para enviar el archivo
+  const formData = new FormData();
+  formData.append('archivo_excel', archivo);
+  
+  // Enviar archivo al servidor
+  fetch('{{ url_for("camaras_routes.importar_camaras_excel") }}', {
+    method: 'POST',
+    body: formData
+  })
+  .then(response => response.json())
+  .then(data => {
+    btnImportar.disabled = false;
+    btnImportar.innerHTML = '<i class="fas fa-upload me-1"></i>Importar Datos';
+    
+    if (data.success) {
+      resultado.className = 'alert alert-success';
+      resultado.innerHTML = `
+        <i class="fas fa-check-circle me-2"></i>
+        <strong>Importación exitosa!</strong><br>
+        ${data.message}
+        ${data.detalles ? `
+          <div class="mt-2">
+            <small>
+              • Registros creados: ${data.detalles.registros_exitosos}<br>
+              • Registros actualizados: ${data.detalles.registros_actualizados}<br>
+              • Total procesados: ${data.detalles.total_procesados}
+            </small>
+          </div>
+        ` : ''}
+      `;
+      
+      // Recargar la página después de 3 segundos
+      setTimeout(() => {
+        location.reload();
+      }, 3000);
+    } else {
+      resultado.className = 'alert alert-danger';
+      resultado.innerHTML = `
+        <i class="fas fa-exclamation-circle me-2"></i>
+        <strong>Error en la importación:</strong><br>
+        ${data.message}
+        ${data.detalles && data.detalles.errores && data.detalles.errores.length > 0 ? `
+          <div class="mt-2">
+            <small><strong>Primeros errores encontrados:</strong></small>
+            <ul class="mb-0">
+              ${data.detalles.errores.slice(0, 5).map(error => `<li><small>${error}</small></li>`).join('')}
+            </ul>
+          </div>
+        ` : ''}
+      `;
+    }
+    
+    resultado.style.display = 'block';
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    btnImportar.disabled = false;
+    btnImportar.innerHTML = '<i class="fas fa-upload me-1"></i>Importar Datos';
+    
+    resultado.className = 'alert alert-danger';
+    resultado.style.display = 'block';
+    resultado.innerHTML = '<i class="fas fa-exclamation-circle me-2"></i>Error de conexión. Inténtelo nuevamente.';
+  });
+});
+
+// Limpiar formulario cuando se cierra el modal
+document.getElementById('modalImportarExcel').addEventListener('hidden.bs.modal', function() {
+  document.getElementById('formImportarExcel').reset();
+  document.getElementById('resultadoImportacion').style.display = 'none';
+  const btnImportar = document.getElementById('btnImportar');
+  btnImportar.disabled = false;
+  btnImportar.innerHTML = '<i class="fas fa-upload me-1"></i>Importar Datos';
 });
 </script>
 

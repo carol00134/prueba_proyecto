@@ -76,7 +76,7 @@ class MapasController:
         try:
             cur = mysql.connection.cursor()
             
-            # Obtener cámaras activas con coordenadas
+            # Obtener cámaras con coordenadas (todas las que tienen coordenadas)
             cur.execute("""
                 SELECT 
                     id_camaras,
@@ -88,7 +88,7 @@ class MapasController:
                     latitud,
                     longitud
                 FROM camaras
-                WHERE estado = 1 AND latitud IS NOT NULL AND longitud IS NOT NULL
+                WHERE latitud IS NOT NULL AND longitud IS NOT NULL
                 ORDER BY nombre
             """)
             
@@ -108,6 +108,7 @@ class MapasController:
                             "id": camara['id_camaras'],
                             "nombre": camara['nombre'],
                             "correo": camara['correo'],
+                            "estado": camara['estado'],
                             "regional": camara['regional'] or '',
                             "fecha_creacion": camara['fecha_creacion'].isoformat() if camara['fecha_creacion'] else '',
                             "tipo": "camara"

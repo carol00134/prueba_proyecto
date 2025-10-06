@@ -10,8 +10,8 @@
 Flask==3.0.0
 
 # Base de datos MySQL
-Flask-MySQLdb==2.0.0
-mysqlclient==2.2.0
+# Flask-MySQLdb==2.0.0  # Comentado - requiere Visual C++ Build Tools
+# mysqlclient==2.2.0   # Comentado - requiere Visual C++ Build Tools
 
 # Para bases de datos en línea (Aiven, PlanetScale, etc.)
 PyMySQL==1.1.0

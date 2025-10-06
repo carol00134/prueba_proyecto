@@ -1001,3 +1001,8 @@ SELECT 'Sistema de bitácora configurado. Usa el procedimiento RegistrarBitacora
 -- - Procedimientos almacenados mejorados
 -- - Índices adicionales para rendimiento
 -- =====================================================
+
+-- Opción 1: Modificar columna existente (reinicia desde 1)
+
+
+ALTER TABLE camaras AUTO_INCREMENT = 1;

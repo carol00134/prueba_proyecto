@@ -32,9 +32,11 @@
   <div class="ticket-container">
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h5 class="mb-0">Lista de Tickets</h5>
-      <a href="/agregar_ticket" class="btn btn-primary btn-sm btn-add-ticket">
-        <i class="fas fa-plus me-1"></i>Agregar Ticket
-      </a>
+      <div class="d-flex gap-2">
+        <a href="/agregar_ticket" class="btn btn-primary btn-sm btn-add-ticket">
+          <i class="fas fa-plus me-1"></i>Agregar Ticket
+        </a>
+      </div>
     </div>
     
     <!-- Filtros -->
@@ -265,4 +267,5 @@ function limpiarFiltros() {
     filtrarTickets();
 }
 </script>
+
 {% endblock %}

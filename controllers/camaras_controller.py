@@ -4,44 +4,6 @@ from controllers.bitacora_controller import BitacoraController
 
 class CamarasController:
     @staticmethod
-    def get_camara(id_camara):
-        """Get individual camera data for API"""
-        try:
-            cur = mysql.connection.cursor()
-            
-            cur.execute("""
-                SELECT id_camaras, correo, nombre, estado, regional,
-                       fecha_creacion, fecha_ultima_modificacion, cambio_password,
-                       usuario_id, latitud, longitud
-                FROM camaras 
-                WHERE id_camaras = %s
-            """, (id_camara,))
-            
-            camara = cur.fetchone()
-            cur.close()
-            
-            if camara:
-                # Convertir fecha a string si existe
-                if camara.get('fecha_creacion'):
-                    camara['fecha_creacion'] = camara['fecha_creacion'].strftime('%Y-%m-%d')
-                
-                return jsonify({
-                    'success': True,
-                    'camara': camara
-                })
-            else:
-                return jsonify({
-                    'success': False,
-                    'message': 'Cámara no encontrada'
-                })
-                
-        except Exception as e:
-            return jsonify({
-                'success': False,
-                'message': f'Error al obtener la cámara: {str(e)}'
-            })
-
-    @staticmethod
     def camaras():
         """Handle cameras management"""
         error = None
@@ -264,7 +226,7 @@ class CamarasController:
             descripcion='Accedió al módulo de gestión de cámaras'
         )
         
-        # Obtener cámaras con información de usuario y coordenadas
+        # Obtener cámaras con información de usuario
         cur.execute("""
             SELECT c.id_camaras, c.correo, c.nombre, c.estado, c.regional,
                    c.fecha_creacion, c.fecha_ultima_modificacion, c.cambio_password,
@@ -303,7 +265,7 @@ class CamarasController:
                              success=success)
     
     @staticmethod
-    def get_camara(id_camaras):
+    def get_camara(id_camara):
         """Get camera data by ID for editing"""
         try:
             cur = mysql.connection.cursor()
@@ -316,7 +278,7 @@ class CamarasController:
                 FROM camaras c
                 LEFT JOIN usuarios u ON c.usuario_id = u.id
                 WHERE c.id_camaras = %s
-            """, (id_camaras,))
+            """, (id_camara,))
             
             camara = cur.fetchone()
             cur.close()
