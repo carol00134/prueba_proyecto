@@ -2,9 +2,10 @@
 -- SCRIPT COMPLETO DE BASE DE DATOS - PROYECTO FLASK
 -- =====================================================
 -- Autor: Sistema de Gestión
--- Fecha: 2025-09-23
--- Descripción: Script completo para crear la base de datos
--- con toda la estructura y datos iniciales
+-- Fecha: 2025-10-06
+-- Versión: 2.0
+-- Descripción: Script completo actualizado para crear la base de datos
+-- con toda la estructura optimizada, datos iniciales y sistema de bitácora
 -- =====================================================
 
 -- Crear base de datos (opcional - descomenta si necesitas crearla)
@@ -14,6 +15,9 @@
 -- Eliminar tablas existentes (en orden correcto por dependencias)
 SET FOREIGN_KEY_CHECKS = 0;
 
+DROP TABLE IF EXISTS bitacora;
+DROP TABLE IF EXISTS acceso_modulo_accion;
+DROP TABLE IF EXISTS acciones;
 DROP TABLE IF EXISTS acceso_modulo;
 DROP TABLE IF EXISTS ticket_unidad;
 DROP TABLE IF EXISTS ticket_despacho;
@@ -197,6 +201,48 @@ CREATE TABLE camaras (
     FOREIGN KEY (rol_id) REFERENCES roles(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Tabla de acciones del sistema
+CREATE TABLE acciones (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(50) NOT NULL,
+    descripcion TEXT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Permisos granulares: qué rol puede hacer qué acción en qué módulo
+CREATE TABLE acceso_modulo_accion (
+    rol_id INT NOT NULL,
+    modulo_id INT NOT NULL,
+    accion_id INT NOT NULL,
+    PRIMARY KEY (rol_id, modulo_id, accion_id),
+    FOREIGN KEY (rol_id) REFERENCES roles(id) ON DELETE CASCADE,
+    FOREIGN KEY (modulo_id) REFERENCES modulos(id) ON DELETE CASCADE,
+    FOREIGN KEY (accion_id) REFERENCES acciones(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Tabla de bitácora para auditoría
+CREATE TABLE bitacora (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    usuario_id INT NOT NULL,
+    usuario_nombre VARCHAR(100) NOT NULL,
+    accion VARCHAR(255) NOT NULL,
+    modulo VARCHAR(100) NOT NULL,
+    descripcion TEXT,
+    ip_address VARCHAR(45),
+    user_agent TEXT,
+    datos_anteriores JSON,
+    datos_nuevos JSON,
+    fecha_hora TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Índices para mejorar rendimiento
+    INDEX idx_usuario_id (usuario_id),
+    INDEX idx_fecha_hora (fecha_hora),
+    INDEX idx_modulo (modulo),
+    INDEX idx_accion (accion),
+    
+    -- Clave foránea
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT = 'Registro de todas las actividades realizadas por usuarios del sistema';
+
 -- =====================================================
 -- DATOS INICIALES
 -- =====================================================
@@ -207,12 +253,13 @@ INSERT INTO roles (nombre) VALUES
 ('operador'),
 ('supervisor');
 
+-- Insertar usuario administrador con contraseña hasheada
+INSERT INTO usuarios (usuario, contraseña, nombre, activo, regional) VALUES 
+('admin', 'scrypt:32768:8:1$kUS26PJ9fRBibWbU$931377aa48e46e1d0a943a99d0ece7f94827f8fe47a6d6b8a003ffae43efc7282d883a4f2066978e5e88843eaa9fb5445ddd67b1dd31f77d38468f039c399455', 'Administrador', 1, 'Central');
 
--- Asignar roles a usuarios
+-- Asignar rol administrador al usuario admin
 INSERT INTO usuario_rol (usuario_id, rol_id) VALUES
-(1, 1), -- admin -> administrador
-(2, 2), -- call -> operador
-(3, 3); -- master -> supervisor
+(1, 1); -- admin -> administrador
 
 -- Insertar departamentos de Honduras
 INSERT INTO departamentos (nombre) VALUES
@@ -687,6 +734,59 @@ INSERT INTO unidades (id, nombre) VALUES
 (16, 'Patrullaje a pie'),
 (17, 'Ambulancia UREM');
 
+-- Insertar módulos del sistema
+INSERT INTO modulos (nombre) VALUES
+('tickets'),           -- id=1
+('mapas'),             -- id=2
+('usuarios'),          -- id=3
+('camaras'),           -- id=4
+('puntos_geograficos'),-- id=5
+('bitacora');          -- id=6
+
+-- Insertar acciones del sistema
+INSERT INTO acciones (nombre, descripcion) VALUES
+('ver', 'Visualizar información'),
+('crear', 'Crear nuevos registros'),
+('editar', 'Modificar registros existentes'),
+('eliminar', 'Eliminar registros');
+
+-- Configurar permisos por rol
+-- ADMINISTRADOR: acceso total a todos módulos y acciones, excepto bitacora que solo puede "ver"
+INSERT INTO acceso_modulo_accion (rol_id, modulo_id, accion_id)
+SELECT 1, m.id, a.id FROM modulos m, acciones a WHERE m.nombre <> 'bitacora';
+
+-- Solo "ver" para bitacora
+INSERT INTO acceso_modulo_accion (rol_id, modulo_id, accion_id)
+SELECT 1, m.id, a.id FROM modulos m, acciones a WHERE m.nombre = 'bitacora' AND a.nombre = 'ver';
+
+-- OPERADOR
+-- Tickets: ver, crear, editar
+INSERT INTO acceso_modulo_accion (rol_id, modulo_id, accion_id)
+VALUES (2, 1, 1), (2, 1, 2), (2, 1, 3);
+-- Mapas: ver
+INSERT INTO acceso_modulo_accion (rol_id, modulo_id, accion_id)
+VALUES (2, 2, 1);
+-- Cámaras: ver
+INSERT INTO acceso_modulo_accion (rol_id, modulo_id, accion_id)
+VALUES (2, 4, 1);
+-- Puntos geograficos: crear, editar
+INSERT INTO acceso_modulo_accion (rol_id, modulo_id, accion_id)
+VALUES (2, 5, 2), (2, 5, 3);
+
+-- SUPERVISOR
+-- Tickets: ver, crear, editar
+INSERT INTO acceso_modulo_accion (rol_id, modulo_id, accion_id)
+VALUES (3, 1, 1), (3, 1, 2), (3, 1, 3);
+-- Mapas: ver
+INSERT INTO acceso_modulo_accion (rol_id, modulo_id, accion_id)
+VALUES (3, 2, 1);
+-- Cámaras: ver, crear, editar
+INSERT INTO acceso_modulo_accion (rol_id, modulo_id, accion_id)
+VALUES (3, 4, 1), (3, 4, 2), (3, 4, 3);
+-- Puntos geograficos: crear, editar
+INSERT INTO acceso_modulo_accion (rol_id, modulo_id, accion_id)
+VALUES (3, 5, 2), (3, 5, 3);
+
 -- =====================================================
 -- ÍNDICES ADICIONALES PARA OPTIMIZACIÓN
 -- =====================================================
@@ -694,10 +794,68 @@ INSERT INTO unidades (id, nombre) VALUES
 -- Índices para búsquedas frecuentes
 CREATE INDEX idx_usuarios_regional ON usuarios(regional);
 CREATE INDEX idx_usuarios_activo ON usuarios(activo);
+CREATE INDEX idx_usuarios_usuario ON usuarios(usuario);
 CREATE INDEX idx_tickets_fecha ON tickets(fecha_hora);
 CREATE INDEX idx_tickets_regional ON tickets(regional);
+CREATE INDEX idx_tickets_usuario ON tickets(usuario_id);
 CREATE INDEX idx_municipios_departamento ON municipios(departamento_id);
 CREATE INDEX idx_subtipologias_tipologia ON subtipologias(tipologia_id);
+CREATE INDEX idx_camaras_regional ON camaras(regional);
+CREATE INDEX idx_camaras_estado ON camaras(estado);
+CREATE INDEX idx_puntos_geograficos_activo ON puntos_geograficos(activo);
+
+-- =====================================================
+-- VISTAS ÚTILES PARA CONSULTAS FRECUENTES
+-- =====================================================
+
+-- Vista para usuarios con sus roles
+CREATE VIEW vista_usuarios_roles AS
+SELECT 
+    u.id,
+    u.nombre,
+    u.usuario,
+    u.regional,
+    u.activo,
+    u.fecha_creacion,
+    GROUP_CONCAT(r.nombre) as roles
+FROM usuarios u
+LEFT JOIN usuario_rol ur ON u.id = ur.usuario_id
+LEFT JOIN roles r ON ur.rol_id = r.id
+GROUP BY u.id, u.nombre, u.usuario, u.regional, u.activo, u.fecha_creacion;
+
+-- Vista para tickets con información completa
+CREATE VIEW vista_tickets_completa AS
+SELECT 
+    t.id,
+    t.fecha_hora,
+    t.regional,
+    d.nombre as departamento,
+    m.nombre as municipio,
+    tip.nombre as tipologia,
+    sub.nombre as subtipologia,
+    t.descripcion,
+    u.nombre as usuario_creador,
+    ST_X(t.location) as latitud,
+    ST_Y(t.location) as longitud
+FROM tickets t
+LEFT JOIN departamentos d ON t.departamento_id = d.id
+LEFT JOIN municipios m ON t.municipio_id = m.id
+LEFT JOIN tipologias tip ON t.tipologia_id = tip.id
+LEFT JOIN subtipologias sub ON t.subtipologia_id = sub.id
+LEFT JOIN usuarios u ON t.usuario_id = u.id;
+
+-- Vista para permisos por rol
+CREATE VIEW vista_permisos_roles AS
+SELECT 
+    r.nombre as rol,
+    mo.nombre as modulo,
+    a.nombre as accion,
+    a.descripcion as descripcion_accion
+FROM acceso_modulo_accion ama
+JOIN roles r ON ama.rol_id = r.id
+JOIN modulos mo ON ama.modulo_id = mo.id
+JOIN acciones a ON ama.accion_id = a.id
+ORDER BY r.nombre, mo.nombre, a.nombre;
 
 -- =====================================================
 -- PROCEDIMIENTOS ALMACENADOS ÚTILES
@@ -728,6 +886,67 @@ BEGIN
     ORDER BY m.nombre;
 END //
 
+-- Procedimiento para obtener estadísticas de tickets por período
+CREATE PROCEDURE GetEstadisticasTickets(IN fecha_inicio DATE, IN fecha_fin DATE)
+BEGIN
+    SELECT 
+        DATE(fecha_hora) as fecha,
+        COUNT(*) as total_tickets,
+        regional,
+        tip.nombre as tipologia,
+        COUNT(*) as cantidad
+    FROM tickets t
+    LEFT JOIN tipologias tip ON t.tipologia_id = tip.id
+    WHERE DATE(fecha_hora) BETWEEN fecha_inicio AND fecha_fin
+    GROUP BY DATE(fecha_hora), regional, tip.nombre
+    ORDER BY fecha DESC, cantidad DESC;
+END //
+
+-- Procedimiento para registrar en bitácora
+CREATE PROCEDURE RegistrarBitacora(
+    IN p_usuario_id INT,
+    IN p_usuario_nombre VARCHAR(100),
+    IN p_accion VARCHAR(255),
+    IN p_modulo VARCHAR(100),
+    IN p_descripcion TEXT,
+    IN p_ip_address VARCHAR(45),
+    IN p_user_agent TEXT,
+    IN p_datos_anteriores JSON,
+    IN p_datos_nuevos JSON
+)
+BEGIN
+    INSERT INTO bitacora (
+        usuario_id, usuario_nombre, accion, modulo, descripcion,
+        ip_address, user_agent, datos_anteriores, datos_nuevos
+    ) VALUES (
+        p_usuario_id, p_usuario_nombre, p_accion, p_modulo, p_descripcion,
+        p_ip_address, p_user_agent, p_datos_anteriores, p_datos_nuevos
+    );
+END //
+
+-- Función para verificar permisos
+CREATE FUNCTION VerificarPermiso(
+    p_usuario_id INT,
+    p_modulo VARCHAR(100),
+    p_accion VARCHAR(50)
+) RETURNS BOOLEAN
+READS SQL DATA
+DETERMINISTIC
+BEGIN
+    DECLARE tiene_permiso BOOLEAN DEFAULT FALSE;
+    
+    SELECT COUNT(*) > 0 INTO tiene_permiso
+    FROM usuario_rol ur
+    JOIN acceso_modulo_accion ama ON ur.rol_id = ama.rol_id
+    JOIN modulos m ON ama.modulo_id = m.id
+    JOIN acciones a ON ama.accion_id = a.id
+    WHERE ur.usuario_id = p_usuario_id
+    AND m.nombre = p_modulo
+    AND a.nombre = p_accion;
+    
+    RETURN tiene_permiso;
+END //
+
 DELIMITER ;
 
 -- =====================================================
@@ -749,103 +968,36 @@ SELECT
     (SELECT COUNT(*) FROM tipologias) as total_tipologias,
     (SELECT COUNT(*) FROM subtipologias) as total_subtipologias,
     (SELECT COUNT(*) FROM despachos) as total_despachos,
-    (SELECT COUNT(*) FROM unidades) as total_unidades;
+    (SELECT COUNT(*) FROM unidades) as total_unidades,
+    (SELECT COUNT(*) FROM modulos) as total_modulos,
+    (SELECT COUNT(*) FROM acciones) as total_acciones;
+
+-- Mostrar configuración de permisos
+SELECT 'Configuración de permisos creada exitosamente' as status_permisos;
+
+-- =====================================================
+-- CONSULTAS DE VERIFICACIÓN ÚTILES
+-- =====================================================
+
+-- Verificar roles y permisos
+SELECT 'Para ver los permisos por rol, ejecuta: SELECT * FROM vista_permisos_roles;' as info;
+
+-- Verificar usuarios
+SELECT 'Para ver usuarios con roles, ejecuta: SELECT * FROM vista_usuarios_roles;' as info;
+
+-- Verificar estructura de bitácora
+SELECT 'Sistema de bitácora configurado. Usa el procedimiento RegistrarBitacora() para auditoría.' as info_bitacora;
 
 -- =====================================================
 -- FIN DEL SCRIPT
 -- =====================================================
--- Script generado el: 2025-09-23
--- Última modificación: Campo regional obligatorio agregado
--- Total de tablas: 14
+-- Script generado el: 2025-10-06
+-- Última modificación: Sistema completo con bitácora, permisos granulares y optimizaciones
+-- Total de tablas: 16 (incluye bitacora, acciones, acceso_modulo_accion)
+-- Nuevas características:
+-- - Sistema de bitácora para auditoría
+-- - Permisos granulares por módulo y acción
+-- - Vistas optimizadas para consultas frecuentes
+-- - Procedimientos almacenados mejorados
+-- - Índices adicionales para rendimiento
 -- =====================================================
-
-
-ALTER TABLE modulos AUTO_INCREMENT = 1;
-
-INSERT INTO usuarios (usuario, contraseña, nombre, activo) VALUES ('admin', 'scrypt:32768:8:1$kUS26PJ9fRBibWbU$931377aa48e46e1d0a943a99d0ece7f94827f8fe47a6d6b8a003ffae43efc7282d883a4f2066978e5e88843eaa9fb5445ddd67b1dd31f77d38468f039c399455', 'Administrador', 1);
-
-
-CREATE TABLE acciones (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(50) NOT NULL
-);
-
-CREATE TABLE acceso_modulo_accion (
-    rol_id INT NOT NULL,
-    modulo_id INT NOT NULL,
-    accion_id INT NOT NULL,
-    PRIMARY KEY (rol_id, modulo_id, accion_id),
-    FOREIGN KEY (rol_id) REFERENCES roles(id) ON DELETE CASCADE,
-    FOREIGN KEY (modulo_id) REFERENCES modulos(id) ON DELETE CASCADE,
-    FOREIGN KEY (accion_id) REFERENCES acciones(id) ON DELETE CASCADE
-);
-
-
-
--- 1. POBLAR TABLA ROLES
-INSERT INTO roles (nombre) VALUES 
-('administrador'),   -- id=1
-('operador'),        -- id=2
-('supervisor');      -- id=3
-
--- 2. POBLAR TABLA MODULOS
-INSERT INTO modulos (nombre) VALUES
-('tickets'),           -- id=1
-('mapas'),             -- id=2
-('usuarios'),          -- id=3
-('camaras'),           -- id=4
-('puntos_geograficos'),-- id=5
-('bitacora');          -- id=6
-
--- 3. POBLAR TABLA ACCIONES
-INSERT INTO acciones (nombre) VALUES
-('ver'),     -- id=1
-('crear'),   -- id=2
-('editar'),  -- id=3
-('eliminar');-- id=4
-
--- 4. POBLAR TABLA acceso_modulo_accion
-
--- -------------------------------------------
--- ADMINISTRADOR: acceso total a todos módulos y acciones,
--- excepto bitacora que solo puede "ver"
--- -------------------------------------------
--- Todos los permisos para todos los módulos menos bitacora
-INSERT INTO acceso_modulo_accion (rol_id, modulo_id, accion_id)
-SELECT 1, m.id, a.id FROM modulos m, acciones a WHERE m.nombre <> 'bitacora';
-
--- Solo "ver" para bitacora
-INSERT INTO acceso_modulo_accion (rol_id, modulo_id, accion_id)
-SELECT 1, m.id, a.id FROM modulos m, acciones a WHERE m.nombre = 'bitacora' AND a.nombre = 'ver';
-
--- -------------------------------------------
--- OPERADOR
--- -------------------------------------------
--- Tickets: ver, crear, editar
-INSERT INTO acceso_modulo_accion (rol_id, modulo_id, accion_id)
-VALUES (2, 1, 1), (2, 1, 2), (2, 1, 3);
--- Mapas: ver
-INSERT INTO acceso_modulo_accion (rol_id, modulo_id, accion_id)
-VALUES (2, 2, 1);
--- Cámaras: ver
-INSERT INTO acceso_modulo_accion (rol_id, modulo_id, accion_id)
-VALUES (2, 4, 1);
--- Puntos geograficos: crear, editar
-INSERT INTO acceso_modulo_accion (rol_id, modulo_id, accion_id)
-VALUES (2, 5, 2), (2, 5, 3);
-
--- -------------------------------------------
--- SUPERVISOR
--- -------------------------------------------
--- Tickets: ver, crear, editar
-INSERT INTO acceso_modulo_accion (rol_id, modulo_id, accion_id)
-VALUES (3, 1, 1), (3, 1, 2), (3, 1, 3);
--- Mapas: ver
-INSERT INTO acceso_modulo_accion (rol_id, modulo_id, accion_id)
-VALUES (3, 2, 1);
--- Cámaras: ver, crear, editar
-INSERT INTO acceso_modulo_accion (rol_id, modulo_id, accion_id)
-VALUES (3, 4, 1), (3, 4, 2), (3, 4, 3);
--- Puntos geograficos: crear, editar
-INSERT INTO acceso_modulo_accion (rol_id, modulo_id, accion_id)
-VALUES (3, 5, 2), (3, 5, 3);
