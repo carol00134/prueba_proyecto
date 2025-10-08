@@ -15,32 +15,59 @@
   
   <!-- Sidebar -->
   <div id="sidebar">
-    <a href="{{ url_for('home_routes.home') }}" class="sidebar-brand">
+    <a href="{{ url_for('home_routes.index') }}" class="sidebar-brand">
       <i class="fas fa-map-marked-alt me-2"></i>Mapa de Calor
     </a>
     
     <nav class="nav flex-column">
+      <!-- Inicio - Solo administrador -->
+      {% if 'administrador' in session.get('user_roles', []) %}
       <a class="nav-link" href="{{ url_for('home_routes.home') }}">
-        <i class="fas fa-home"></i>Inicio
+        <i class="fas fa-home"></i>Dashboard
       </a>
+      {% endif %}
+      
+      <!-- Mapas - Solo operador y administrador -->
+      {% if 'administrador' in session.get('user_roles', []) or 'operador' in session.get('user_roles', []) %}
       <a class="nav-link" href="{{ url_for('mapas_routes.mapas') }}">
         <i class="fas fa-map"></i>Mapas
       </a>
+      {% endif %}
+      
+      <!-- Tickets - Solo operador y administrador -->
+      {% if 'administrador' in session.get('user_roles', []) or 'operador' in session.get('user_roles', []) %}
       <a class="nav-link" href="{{ url_for('tickets_routes.tickets') }}">
         <i class="fas fa-file-alt"></i>Tickets
       </a>
+      {% endif %}
+      
+      <!-- Usuarios - Solo supervisor y administrador -->
+      {% if 'administrador' in session.get('user_roles', []) or 'supervisor' in session.get('user_roles', []) %}
       <a class="nav-link" href="{{ url_for('usuarios_routes.usuarios') }}">
         <i class="fas fa-users"></i>Usuarios
       </a>
+      {% endif %}
+      
+      <!-- Cámaras - Operador, supervisor y administrador -->
+      {% if 'administrador' in session.get('user_roles', []) or 'operador' in session.get('user_roles', []) or 'supervisor' in session.get('user_roles', []) %}
       <a class="nav-link" href="{{ url_for('camaras_routes.camaras') }}">
         <i class="fas fa-video"></i>Cámaras
       </a>
+      {% endif %}
+      
+      <!-- Punto geográfico - Solo supervisor y administrador -->
+      {% if 'administrador' in session.get('user_roles', []) or 'supervisor' in session.get('user_roles', []) %}
       <a class="nav-link" href="{{ url_for('puntos_geograficos_routes.puntoGeografico') }}">
         <i class="fas fa-map-pin"></i>Punto geográfico
       </a>
+      {% endif %}
+      
+      <!-- Bitácora - Solo administrador -->
+      {% if 'administrador' in session.get('user_roles', []) %}
       <a class="nav-link" href="{{ url_for('bitacora.bitacora_index') }}">
         <i class="fas fa-history"></i>Bitácora
       </a>
+      {% endif %}
     </nav>
   </div>
 
@@ -53,7 +80,13 @@
       </div>
       <div class="user-details">
         <div class="user-name">{{ session.usuario }}</div>
-        <div class="user-status">Usuario activo</div>
+        <div class="user-status">
+          {% if session.get('user_roles') %}
+            Rol: {{ session.get('user_roles', [])|join(', ') }}
+          {% else %}
+            Usuario activo
+          {% endif %}
+        </div>
       </div>
     </div>
     <a href="{{ url_for('auth_routes.logout') }}" class="logout-btn">

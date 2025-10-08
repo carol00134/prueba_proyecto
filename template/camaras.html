@@ -26,7 +26,8 @@
     </div>
   {% endif %}
 
-  <!-- Formulario para agregar nueva cámara -->
+  <!-- Formulario para agregar nueva cámara - Solo si puede crear -->
+  {% if can_perform_action('camaras', 'crear') %}
   <div class="camera-container">
     
     <form method="POST" action="{{ url_for('camaras_routes.camaras') }}">
@@ -130,6 +131,7 @@
       </div>
     </form>
   </div>
+  {% endif %}
 
   <!-- Lista de cámaras -->
   <div class="table-container">
@@ -196,11 +198,14 @@
               </td>
               <td>{{ camara.regional or 'N/A' }}</td>
               <td>
+                {% if can_perform_action('camaras', 'editar') %}
                 <button class="btn btn-warning btn-sm me-1" 
                         onclick="editarCamara('{{ camara.id_camaras }}')" 
                         title="Editar">
                   <i class="fas fa-edit"></i>
                 </button>
+                {% endif %}
+                {% if can_perform_action('camaras', 'eliminar') %}
                 <form style="display: inline;" method="POST" action="{{ url_for('camaras_routes.camaras') }}" 
                       onsubmit="return confirm('¿Está seguro de eliminar esta cámara?')">
                   <input type="hidden" name="accion" value="eliminar">
@@ -209,6 +214,7 @@
                     <i class="fas fa-trash"></i>
                   </button>
                 </form>
+                {% endif %}
               </td>
             </tr>
             {% endfor %}

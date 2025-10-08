@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 
-{% block title %}Gestión de Mapas - Sistema{% endblock %}
+{% block title %}Mapa de Honduras - Sistema 911{% endblock %}
 
-{% block page_title %}<i class="fas fa-map me-2"></i>Gestión de Mapas{% endblock %}
+{% block page_title %}<i class="fas fa-map me-2"></i>Mapa de Honduras - Sistema 911{% endblock %}
 
 {% block back_button %}
 <a href="/" class="btn-back">
@@ -21,32 +21,80 @@
         <div class="card-header">
           <h3 class="card-title">
             <i class="fas fa-map-marked-alt me-2"></i>
-            Mapa Interactivo - Puntos Geográficos y Cámaras
+            🇭🇳 Mapa Interactivo de Honduras - Emergencias 911
           </h3>
         </div>
         <div class="card-body">
           <!-- Controles del mapa -->
           <div class="map-controls">
             <div class="row">
-              <div class="col-md-4">
+              <div class="col-md-2">
                 <div class="form-check">
                   <input class="form-check-input" type="checkbox" id="showPuntos" checked>
                   <label class="form-check-label" for="showPuntos">
-                    <i class="fas fa-map-pin text-primary"></i> Mostrar Puntos Geográficos
+                    <i class="fas fa-map-pin text-primary"></i> Puntos
                   </label>
                 </div>
               </div>
-              <div class="col-md-4">
+              <div class="col-md-2">
                 <div class="form-check">
                   <input class="form-check-input" type="checkbox" id="showCamaras" checked>
                   <label class="form-check-label" for="showCamaras">
-                    <i class="fas fa-video text-success"></i> Mostrar Información de Cámaras
+                    <i class="fas fa-video text-success"></i> Cámaras
                   </label>
                 </div>
               </div>
+              <div class="col-md-3">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="showTickets" checked>
+                  <label class="form-check-label" for="showTickets">
+                    <i class="fas fa-exclamation-triangle text-warning"></i> Emergencias
+                  </label>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="showHeatmap">
+                  <label class="form-check-label" for="showHeatmap">
+                    <i class="fas fa-fire text-danger"></i> Mapa de Calor
+                  </label>
+                </div>
+              </div>
+              <div class="col-md-2">
+                <button class="btn btn-outline-secondary btn-sm me-1" onclick="console.log('🔄 Actualización manual solicitada'); recargarDatos()">
+                  <i class="fas fa-sync-alt me-1"></i> Actualizar
+                </button>
+                <button class="btn btn-outline-primary btn-sm" onclick="centrarEnHonduras()" title="Centrar en Honduras">
+                  <i class="fas fa-crosshairs me-1"></i> 🇭🇳
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filtros avanzados para emergencias -->
+          <div class="map-filters" style="margin-top: 15px;">
+            <div class="row">
               <div class="col-md-4">
-                <button class="btn btn-outline-secondary btn-sm" onclick="console.log('🔄 Actualización manual solicitada'); recargarDatos()">
-                  <i class="fas fa-sync-alt me-1"></i> Actualizar Datos
+                <label for="filtroTipologia" class="form-label"><small>Filtrar por Tipo de Emergencia:</small></label>
+                <select class="form-select form-select-sm" id="filtroTipologia" onchange="filtrarTickets()">
+                  <option value="">Todas las tipologías</option>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label for="filtroSubtipologia" class="form-label"><small>Filtrar por Subtipología:</small></label>
+                <select class="form-select form-select-sm" id="filtroSubtipologia" onchange="filtrarTickets()">
+                  <option value="">Todas las subtipologías</option>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label for="filtroFecha" class="form-label"><small>Filtrar por Fecha:</small></label>
+                <input type="date" class="form-control form-control-sm" id="filtroFecha" onchange="filtrarTickets()">
+              </div>
+            </div>
+            <div class="row mt-2">
+              <div class="col-md-12">
+                <button class="btn btn-outline-secondary btn-sm" onclick="limpiarFiltros()">
+                  <i class="fas fa-filter me-1"></i> Limpiar Filtros
                 </button>
               </div>
             </div>
@@ -66,31 +114,161 @@
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
 
 <script>
 // Variables globales
 let map;
 let puntosLayer;
 let camarasLayer;
+let ticketsLayer;
+let heatmapLayer;
 let camarasControl;
+
+// Mapping de iconos por tipología de emergencia
+const iconosPorTipologia = {
+  1: { // COLISION VEHICULAR
+    icon: 'fas fa-car-crash',
+    color: '#dc3545', // rojo
+    backgroundColor: 'rgba(220, 53, 69, 0.2)'
+  },
+  2: { // DELITOS CONTRA LA VIDA
+    icon: 'fas fa-skull-crossbones',
+    color: '#6f42c1', // púrpura
+    backgroundColor: 'rgba(111, 66, 193, 0.2)'
+  },
+  3: { // DELITOS CONTRA LA PROPIEDAD
+    icon: 'fas fa-user-secret',
+    color: '#fd7e14', // naranja
+    backgroundColor: 'rgba(253, 126, 20, 0.2)'
+  },
+  4: { // DELITOS CONTRA LA LIBERTAD
+    icon: 'fas fa-handcuffs',
+    color: '#e83e8c', // rosa
+    backgroundColor: 'rgba(232, 62, 140, 0.2)'
+  },
+  5: { // DELITOS CONTRA LA FAMILIA
+    icon: 'fas fa-home',
+    color: '#20c997', // teal
+    backgroundColor: 'rgba(32, 201, 151, 0.2)'
+  },
+  6: { // DELITOS SEXUALES
+    icon: 'fas fa-exclamation-triangle',
+    color: '#6610f2', // índigo
+    backgroundColor: 'rgba(102, 16, 242, 0.2)'
+  },
+  7: { // DELITOS CONTRA LA SEGURIDAD
+    icon: 'fas fa-shield-alt',
+    color: '#343a40', // gris oscuro
+    backgroundColor: 'rgba(52, 58, 64, 0.2)'
+  },
+  8: { // SALUD MENTAL
+    icon: 'fas fa-brain',
+    color: '#17a2b8', // cyan
+    backgroundColor: 'rgba(23, 162, 184, 0.2)'
+  },
+  9: { // EMERGENCIAS
+    icon: 'fas fa-ambulance',
+    color: '#dc3545', // rojo brillante
+    backgroundColor: 'rgba(220, 53, 69, 0.2)'
+  },
+  10: { // LESIONES
+    icon: 'fas fa-band-aid',
+    color: '#ffc107', // amarillo
+    backgroundColor: 'rgba(255, 193, 7, 0.2)'
+  },
+  11: { // VIOLENCIA DOMESTICA
+    icon: 'fas fa-fist-raised',
+    color: '#721c24', // rojo oscuro
+    backgroundColor: 'rgba(114, 28, 36, 0.2)'
+  },
+  12: { // SEGURIDAD CIUDADANA
+    icon: 'fas fa-user-shield',
+    color: '#495057', // gris
+    backgroundColor: 'rgba(73, 80, 87, 0.2)'
+  },
+  13: { // MUERTE
+    icon: 'fas fa-cross',
+    color: '#212529', // negro
+    backgroundColor: 'rgba(33, 37, 41, 0.2)'
+  },
+  14: { // OTROS
+    icon: 'fas fa-question-circle',
+    color: '#6c757d', // gris medio
+    backgroundColor: 'rgba(108, 117, 125, 0.2)'
+  },
+  15: { // ELECTORAL
+    icon: 'fas fa-vote-yea',
+    color: '#007bff', // azul
+    backgroundColor: 'rgba(0, 123, 255, 0.2)'
+  },
+  16: { // DELITOS ELECTORALES
+    icon: 'fas fa-balance-scale',
+    color: '#28a745', // verde
+    backgroundColor: 'rgba(40, 167, 69, 0.2)'
+  },
+  17: { // ASISTENCIA SOCIAL
+    icon: 'fas fa-hands-helping',
+    color: '#17a2b8', // cyan
+    backgroundColor: 'rgba(23, 162, 184, 0.2)'
+  }
+};
+
+// Función para crear icono personalizado por tipología
+function crearIconoTicket(tipologiaId, subtipologiaNombre = '') {
+  const config = iconosPorTipologia[tipologiaId] || iconosPorTipologia[14]; // Default a "OTROS"
+  
+  return L.divIcon({
+    html: `<i class="${config.icon}" style="color: ${config.color}; font-size: 20px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);"></i>`,
+    iconSize: [20, 20],
+    className: 'custom-div-icon ticket-icon',
+    popupAnchor: [0, -10]
+  });
+}
+
+// Coordenadas y límites específicos de Honduras
+const HONDURAS_BOUNDS = {
+  // Límites geográficos de Honduras
+  north: 16.5,   // Frontera con Guatemala/Belice
+  south: 12.9,   // Frontera con Nicaragua
+  east: -83.1,   // Costa Caribeña
+  west: -89.4    // Frontera con Guatemala/El Salvador
+};
+
+const HONDURAS_CENTER = [14.8, -86.5]; // Centro geográfico de Honduras
 
 // Inicializar el mapa
 function initMap() {
-  // Crear el mapa centrado en Honduras
-  map = L.map('map').setView([14.8, -86.5], 7);
+  // Crear el mapa centrado específicamente en Honduras
+  map = L.map('map', {
+    center: HONDURAS_CENTER,
+    zoom: 7,
+    minZoom: 6,  // Zoom mínimo para mantener Honduras visible
+    maxZoom: 18, // Zoom máximo para detalles
+    maxBounds: [
+      [HONDURAS_BOUNDS.south - 0.5, HONDURAS_BOUNDS.west - 0.5], // Esquina suroeste con margen
+      [HONDURAS_BOUNDS.north + 0.5, HONDURAS_BOUNDS.east + 0.5]  // Esquina noreste con margen
+    ],
+    maxBoundsViscosity: 1.0 // Evita que el usuario se salga completamente de Honduras
+  });
   
   // Agregar capa de mapa base
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
+    maxZoom: 18,
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
   }).addTo(map);
 
   // Inicializar capas
   puntosLayer = L.layerGroup().addTo(map);
   camarasLayer = L.layerGroup().addTo(map);
-  console.log('🗺️ Mapa inicializado. Capas creadas:', {
+  ticketsLayer = L.layerGroup().addTo(map);
+  
+  console.log('🗺️ Mapa de Honduras inicializado. Capas creadas:', {
+    center: HONDURAS_CENTER,
+    bounds: HONDURAS_BOUNDS,
     puntosLayer: !!puntosLayer,
-    camarasLayer: !!camarasLayer
+    camarasLayer: !!camarasLayer,
+    ticketsLayer: !!ticketsLayer
   });
 
   // Agregar leyenda
@@ -237,6 +415,280 @@ async function cargarCamaras() {
   }
 }
 
+// Función para cargar tickets/emergencias
+async function cargarTickets() {
+  try {
+    console.log('🚨 Iniciando carga de tickets/emergencias...');
+    const response = await fetch('/api/tickets');
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const geojson = await response.json();
+    console.log('📊 Respuesta del API de tickets:', geojson);
+    console.log('🎯 Número de tickets:', geojson.features ? geojson.features.length : 0);
+    
+    // Limpiar capa anterior
+    ticketsLayer.clearLayers();
+    todosLosTickets = []; // Limpiar array de tickets
+    
+    if (geojson.features && geojson.features.length > 0) {
+      console.log('✅ Procesando', geojson.features.length, 'tickets/emergencias...');
+      
+      geojson.features.forEach((feature, index) => {
+        console.log(`🚨 Procesando ticket ${index + 1}:`, feature.properties.id, 'Tipología:', feature.properties.tipologia_nombre);
+        const coords = feature.geometry.coordinates;
+        const props = feature.properties;
+        
+        const latLng = L.latLng(coords[1], coords[0]);
+        
+        // Crear icono basado en tipología
+        const icono = crearIconoTicket(props.tipologia_id, props.subtipologia_nombre);
+        
+        // Formatear fecha
+        const fechaFormateada = props.fecha_hora ? 
+          new Date(props.fecha_hora).toLocaleDateString('es-ES', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          }) : 'No especificada';
+        
+        const marker = L.marker(latLng, { icon: icono })
+          .bindPopup(`
+            <div class="info-panel">
+              <h6><i class="fas fa-ticket-alt text-warning"></i> Ticket: ${props.id}</h6>
+              <p><strong>Fecha:</strong> ${fechaFormateada}</p>
+              <p><strong>Tipología:</strong> <span class="badge" style="background-color: ${iconosPorTipologia[props.tipologia_id]?.color || '#6c757d'}">${props.tipologia_nombre}</span></p>
+              ${props.subtipologia_nombre ? `<p><strong>Subtipología:</strong> ${props.subtipologia_nombre}</p>` : ''}
+              <p><strong>Ubicación:</strong> ${props.departamento}, ${props.municipio}</p>
+              ${props.regional ? `<p><strong>Regional:</strong> ${props.regional}</p>` : ''}
+              ${props.descripcion ? `<p><strong>Descripción:</strong> ${props.descripcion}</p>` : ''}
+              ${props.usuario_nombre ? `<p><strong>Reportado por:</strong> ${props.usuario_nombre}</p>` : ''}
+              <p><strong>Coordenadas:</strong> ${coords[1].toFixed(6)}, ${coords[0].toFixed(6)}</p>
+            </div>
+          `, {
+            maxWidth: 400,
+            className: 'custom-popup'
+          });
+        
+        // Almacenar ticket con su marcador para filtrado
+        const ticketData = {
+          ...props,
+          marker: marker,
+          coords: coords
+        };
+        
+        todosLosTickets.push(ticketData);
+        ticketsLayer.addLayer(marker);
+        console.log('📌 Marcador de ticket agregado para:', props.id, 'en coordenadas:', latLng);
+      });
+      
+      // Actualizar filtros después de cargar tickets
+      actualizarFiltros();
+      
+      // Crear heatmap con los nuevos datos
+      crearHeatmap();
+      
+      console.log(`✅ Cargados ${geojson.features.length} tickets en el mapa`);
+      console.log('📊 Total de marcadores en ticketsLayer:', ticketsLayer.getLayers().length);
+    } else {
+      console.log('❌ No se encontraron tickets con coordenadas');
+    }
+  } catch (error) {
+    console.error('Error al cargar tickets:', error);
+  }
+}
+
+// Variables para almacenar todos los tickets cargados
+let todosLosTickets = [];
+
+// Función para filtrar tickets por tipología, subtipología y fecha
+function filtrarTickets() {
+  const filtroTipologia = document.getElementById('filtroTipologia').value;
+  const filtroSubtipologia = document.getElementById('filtroSubtipologia').value;
+  const filtroFecha = document.getElementById('filtroFecha').value;
+  
+  console.log('🔍 Aplicando filtros:', { filtroTipologia, filtroSubtipologia, filtroFecha });
+  
+  // Limpiar capa actual
+  ticketsLayer.clearLayers();
+  
+  // Filtrar tickets
+  const ticketsFiltrados = todosLosTickets.filter(ticket => {
+    let cumpleFiltros = true;
+    
+    // Filtro por tipología
+    if (filtroTipologia && ticket.tipologia_id != filtroTipologia) {
+      cumpleFiltros = false;
+    }
+    
+    // Filtro por subtipología
+    if (filtroSubtipologia && ticket.subtipologia_id != filtroSubtipologia) {
+      cumpleFiltros = false;
+    }
+    
+    // Filtro por fecha
+    if (filtroFecha) {
+      const fechaTicket = new Date(ticket.fecha_hora).toISOString().split('T')[0];
+      if (fechaTicket !== filtroFecha) {
+        cumpleFiltros = false;
+      }
+    }
+    
+    return cumpleFiltros;
+  });
+  
+  console.log(`📊 Tickets filtrados: ${ticketsFiltrados.length} de ${todosLosTickets.length}`);
+  
+  // Agregar tickets filtrados al mapa
+  ticketsFiltrados.forEach(ticket => {
+    ticketsLayer.addLayer(ticket.marker);
+  });
+}
+
+// Función para limpiar todos los filtros
+function limpiarFiltros() {
+  document.getElementById('filtroTipologia').value = '';
+  document.getElementById('filtroSubtipologia').value = '';
+  document.getElementById('filtroFecha').value = '';
+  
+  // Mostrar todos los tickets
+  ticketsLayer.clearLayers();
+  todosLosTickets.forEach(ticket => {
+    ticketsLayer.addLayer(ticket.marker);
+  });
+  
+  console.log('🧹 Filtros limpiados, mostrando todos los tickets');
+}
+
+// Función para actualizar los selectores de filtros
+function actualizarFiltros() {
+  const selectTipologia = document.getElementById('filtroTipologia');
+  const selectSubtipologia = document.getElementById('filtroSubtipologia');
+  
+  // Limpiar opciones actuales (excepto la primera)
+  selectTipologia.innerHTML = '<option value="">Todas las tipologías</option>';
+  selectSubtipologia.innerHTML = '<option value="">Todas las subtipologías</option>';
+  
+  // Obtener tipologías únicas
+  const tipologiasUnicas = [...new Map(todosLosTickets.map(ticket => 
+    [ticket.tipologia_id, { id: ticket.tipologia_id, nombre: ticket.tipologia_nombre }]
+  )).values()];
+  
+  // Agregar opciones de tipología
+  tipologiasUnicas.forEach(tipologia => {
+    if (tipologia.nombre) {
+      const option = document.createElement('option');
+      option.value = tipologia.id;
+      option.textContent = tipologia.nombre;
+      selectTipologia.appendChild(option);
+    }
+  });
+  
+  // Obtener subtipologías únicas
+  const subtipologiasUnicas = [...new Map(todosLosTickets
+    .filter(ticket => ticket.subtipologia_nombre)
+    .map(ticket => [ticket.subtipologia_id, { id: ticket.subtipologia_id, nombre: ticket.subtipologia_nombre }])
+  ).values()];
+  
+  // Agregar opciones de subtipología
+  subtipologiasUnicas.forEach(subtipologia => {
+    const option = document.createElement('option');
+    option.value = subtipologia.id;
+    option.textContent = subtipologia.nombre;
+    selectSubtipologia.appendChild(option);
+  });
+  
+  console.log(`🎛️ Filtros actualizados: ${tipologiasUnicas.length} tipologías, ${subtipologiasUnicas.length} subtipologías`);
+}
+
+// Función para crear/actualizar mapa de calor
+function crearHeatmap() {
+  if (heatmapLayer) {
+    map.removeLayer(heatmapLayer);
+  }
+  
+  // Crear array de coordenadas con intensidad para el heatmap
+  const heatData = todosLosTickets.map(ticket => {
+    return [ticket.coords[1], ticket.coords[0], 0.5]; // lat, lng, intensity
+  });
+  
+  if (heatData.length > 0) {
+    heatmapLayer = L.heatLayer(heatData, {
+      radius: 25,
+      blur: 15,
+      maxZoom: 17,
+      gradient: {
+        0.0: 'blue',
+        0.2: 'cyan',
+        0.4: 'lime',
+        0.6: 'yellow',
+        0.8: 'orange',
+        1.0: 'red'
+      }
+    });
+    
+    console.log(`🔥 Heatmap creado con ${heatData.length} puntos`);
+    
+    // Agregar al mapa si el checkbox está marcado
+    if (document.getElementById('showHeatmap').checked) {
+      map.addLayer(heatmapLayer);
+    }
+  } else {
+    console.log('❌ No hay datos para crear heatmap');
+  }
+}
+
+// Función para crear heatmap por tipología específica
+function crearHeatmapPorTipologia(tipologiaId = null) {
+  if (heatmapLayer) {
+    map.removeLayer(heatmapLayer);
+  }
+  
+  let ticketsFiltrados = todosLosTickets;
+  
+  // Filtrar por tipología si se especifica
+  if (tipologiaId) {
+    ticketsFiltrados = todosLosTickets.filter(ticket => ticket.tipologia_id == tipologiaId);
+  }
+  
+  // Crear array de coordenadas con intensidad
+  const heatData = ticketsFiltrados.map(ticket => {
+    // Intensidad basada en tipología (emergencias médicas más intensas)
+    let intensidad = 0.5;
+    if (ticket.tipologia_id == 9) intensidad = 1.0; // Emergencias médicas
+    else if (ticket.tipologia_id == 1) intensidad = 0.8; // Accidentes vehiculares
+    else if (ticket.tipologia_id == 2) intensidad = 0.9; // Delitos contra la vida
+    
+    return [ticket.coords[1], ticket.coords[0], intensidad];
+  });
+  
+  if (heatData.length > 0) {
+    heatmapLayer = L.heatLayer(heatData, {
+      radius: 25,
+      blur: 15,
+      maxZoom: 17,
+      gradient: {
+        0.0: 'blue',
+        0.2: 'cyan', 
+        0.4: 'lime',
+        0.6: 'yellow',
+        0.8: 'orange',
+        1.0: 'red'
+      }
+    });
+    
+    console.log(`🔥 Heatmap por tipología creado con ${heatData.length} puntos`);
+    
+    if (document.getElementById('showHeatmap').checked) {
+      map.addLayer(heatmapLayer);
+    }
+  }
+}
+
 // Función para agregar leyenda
 function agregarLeyenda() {
   const legend = L.control({position: 'bottomright'});
@@ -251,6 +703,23 @@ function agregarLeyenda() {
       <div class="legend-item">
         <div class="legend-color" style="background-color: #28a745;"></div>
         <span>Cámaras</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background-color: #ffc107;"></div>
+        <span>Emergencias/Tickets</span>
+      </div>
+      <div class="legend-item">
+        <div style="background: linear-gradient(to right, blue, cyan, lime, yellow, orange, red); height: 15px; width: 100px; margin-right: 10px;"></div>
+        <span>Mapa de Calor (Densidad)</span>
+      </div>
+      <div class="legend-tipologias" style="margin-top: 10px;">
+        <small><strong>Tipos de Emergencia:</strong></small>
+        <div style="font-size: 11px; margin-top: 5px;">
+          <div><i class="fas fa-car-crash" style="color: #dc3545;"></i> Accidentes</div>
+          <div><i class="fas fa-ambulance" style="color: #dc3545;"></i> Emergencias Médicas</div>
+          <div><i class="fas fa-user-secret" style="color: #fd7e14;"></i> Delitos</div>
+          <div><i class="fas fa-question-circle" style="color: #6c757d;"></i> Otros</div>
+        </div>
       </div>
     `;
     
@@ -283,20 +752,80 @@ document.getElementById('showCamaras').addEventListener('change', function() {
   }
 });
 
+document.getElementById('showTickets').addEventListener('change', function() {
+  console.log('🔄 Checkbox tickets cambiado a:', this.checked);
+  console.log('📊 Marcadores en ticketsLayer:', ticketsLayer.getLayers().length);
+  if (this.checked) {
+    map.addLayer(ticketsLayer);
+    console.log('✅ Capa de tickets agregada al mapa');
+  } else {
+    map.removeLayer(ticketsLayer);
+    console.log('❌ Capa de tickets removida del mapa');
+  }
+});
+
+document.getElementById('showHeatmap').addEventListener('change', function() {
+  console.log('🔄 Checkbox heatmap cambiado a:', this.checked);
+  if (this.checked) {
+    // Crear el heatmap si no existe
+    if (!heatmapLayer && todosLosTickets.length > 0) {
+      crearHeatmap();
+    }
+    if (heatmapLayer) {
+      map.addLayer(heatmapLayer);
+      console.log('✅ Capa de heatmap agregada al mapa');
+    }
+  } else {
+    if (heatmapLayer) {
+      map.removeLayer(heatmapLayer);
+      console.log('❌ Capa de heatmap removida del mapa');
+    }
+  }
+});
+
 // Función para recargar datos
 function recargarDatos() {
-  console.log('🔄 Recargando datos del mapa...');
-  Promise.all([cargarPuntosGeograficos(), cargarCamaras()]).then(() => {
-    // Ajustar vista del mapa a todos los puntos
-    const allLayers = [...puntosLayer.getLayers(), ...camarasLayer.getLayers()];
+  console.log('🔄 Recargando datos del mapa de Honduras...');
+  Promise.all([cargarPuntosGeograficos(), cargarCamaras(), cargarTickets()]).then(() => {
+    // Ajustar vista solo si hay elementos, pero mantener dentro de Honduras
+    const allLayers = [...puntosLayer.getLayers(), ...camarasLayer.getLayers(), ...ticketsLayer.getLayers()];
     console.log('📊 Total de elementos para ajustar vista:', allLayers.length);
+    
     if (allLayers.length > 0) {
       const group = new L.featureGroup(allLayers);
-      map.fitBounds(group.getBounds().pad(0.1));
-      console.log('🎯 Vista del mapa ajustada a todos los elementos');
+      const bounds = group.getBounds();
+      
+      // Verificar que los bounds estén dentro de Honduras
+      const hondurasBounds = L.latLngBounds(
+        [HONDURAS_BOUNDS.south, HONDURAS_BOUNDS.west],
+        [HONDURAS_BOUNDS.north, HONDURAS_BOUNDS.east]
+      );
+      
+      // Si los elementos están dentro de Honduras, ajustar la vista
+      if (hondurasBounds.contains(bounds) || hondurasBounds.intersects(bounds)) {
+        map.fitBounds(bounds.pad(0.1), {
+          maxZoom: 12 // Limitar zoom máximo para mantener contexto
+        });
+        console.log('🎯 Vista del mapa ajustada a elementos en Honduras');
+      } else {
+        // Si los elementos están fuera de Honduras, mantener vista centrada en Honduras
+        map.setView(HONDURAS_CENTER, 7);
+        console.log('🇭🇳 Vista centrada en Honduras (elementos fuera del territorio)');
+      }
     } else {
-      console.log('ℹ️ No hay elementos para ajustar la vista del mapa');
+      // Si no hay elementos, centrar en Honduras
+      map.setView(HONDURAS_CENTER, 7);
+      console.log('🇭🇳 Vista centrada en Honduras (sin elementos)');
     }
+  });
+}
+
+// Función para centrar el mapa en Honduras
+function centrarEnHonduras() {
+  console.log('🇭🇳 Centrando mapa en Honduras...');
+  map.setView(HONDURAS_CENTER, 7, {
+    animate: true,
+    duration: 1.0
   });
 }
 

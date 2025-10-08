@@ -2,10 +2,12 @@ from flask import render_template, request, session, jsonify, redirect, url_for
 from config import mysql
 from datetime import datetime, timedelta
 import json
+from utils.auth_utils import role_required, login_required
 
 class BitacoraController:
     
     @staticmethod
+    @role_required('administrador')
     def index():
         """Mostrar la página principal de bitácora con filtros"""
         if 'usuario' not in session:

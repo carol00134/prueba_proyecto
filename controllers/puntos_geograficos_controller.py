@@ -1,9 +1,11 @@
 from flask import render_template, request, session
 from config import mysql
 from controllers.bitacora_controller import BitacoraController
+from utils.auth_utils import role_required, login_required
 
 class PuntosGeograficosController:
     @staticmethod
+    @role_required('administrador', 'supervisor')
     def puntos_geograficos():
         """Handle geographic points management"""
         error = None

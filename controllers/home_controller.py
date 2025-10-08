@@ -1,9 +1,11 @@
 from flask import render_template, redirect, session
 from config import mysql
 from controllers.bitacora_controller import BitacoraController
+from utils.auth_utils import role_required
 
 class HomeController:
     @staticmethod
+    @role_required('administrador')
     def home():
         """Handle home page with dashboard statistics"""
         if 'usuario' in session:

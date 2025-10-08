@@ -1,17 +1,32 @@
 from flask import render_template, request, jsonify, session
 from config import mysql
 from controllers.bitacora_controller import BitacoraController
+from utils.auth_utils import action_required, can_user_perform_action
 
 class CamarasController:
     @staticmethod
+    @action_required('ver')
     def camaras():
         """Handle cameras management"""
+        usuario_actual = session['usuario']
+        user_roles = session.get('user_roles', [])
         error = None
         success = None
         
         if request.method == 'POST':
             accion = request.form.get('accion')
             print(f"DEBUG: Acción recibida: '{accion}'")  # Log para debug
+            
+            # Verificar permisos para la acción específica
+            if accion == 'agregar' and not can_user_perform_action(usuario_actual, 'camaras', 'crear'):
+                error = "No tienes permisos para crear cámaras"
+                return render_template('camaras.html', error=error)
+            elif accion == 'editar' and not can_user_perform_action(usuario_actual, 'camaras', 'editar'):
+                error = "No tienes permisos para editar cámaras"
+                return render_template('camaras.html', error=error)
+            elif accion == 'eliminar' and not can_user_perform_action(usuario_actual, 'camaras', 'eliminar'):
+                error = "No tienes permisos para eliminar cámaras"
+                return render_template('camaras.html', error=error)
             
             cur = mysql.connection.cursor()
             
@@ -27,10 +42,15 @@ class CamarasController:
                     fecha_ultima_modificacion = request.form.get('fecha_ultima_modificacion')
                     cambio_password = request.form.get('cambio_password')
                     usuario_id = request.form.get('usuario_id') if request.form.get('usuario_id') else None
+                    
+                    # Si no es administrador, usar el ID del usuario actual
+                    if 'administrador' not in user_roles:
+                        usuario_id = session.get('user_id')
+                        
                     latitud = request.form.get('latitud', '').strip()
                     longitud = request.form.get('longitud', '').strip()
                     
-                    print(f"DEBUG: Agregando cámara con ID: '{id_camaras}'")  # Log para debug
+                    print(f"DEBUG: Agregando cámara con ID: '{id_camaras}' para usuario_id: {usuario_id}")  # Log para debug
                     
                     # Validar campos obligatorios
                     if not id_camaras:
@@ -226,16 +246,30 @@ class CamarasController:
             descripcion='Accedió al módulo de gestión de cámaras'
         )
         
-        # Obtener cámaras con información de usuario
-        cur.execute("""
-            SELECT c.id_camaras, c.correo, c.nombre, c.estado, c.regional,
-                   c.fecha_creacion, c.fecha_ultima_modificacion, c.cambio_password,
-                   c.usuario_id, c.latitud, c.longitud,
-                   u.nombre as usuario_nombre
-            FROM camaras c
-            LEFT JOIN usuarios u ON c.usuario_id = u.id
-            ORDER BY c.nombre
-        """)
+        # Obtener cámaras según el rol del usuario
+        if 'operador' in user_roles and 'administrador' not in user_roles:
+            # Operador solo ve sus propias cámaras
+            cur.execute("""
+                SELECT c.id_camaras, c.correo, c.nombre, c.estado, c.regional,
+                       c.fecha_creacion, c.fecha_ultima_modificacion, c.cambio_password,
+                       c.usuario_id, c.latitud, c.longitud,
+                       u.nombre as usuario_nombre
+                FROM camaras c
+                LEFT JOIN usuarios u ON c.usuario_id = u.id
+                WHERE u.usuario = %s
+                ORDER BY c.nombre
+            """, (usuario_actual,))
+        else:
+            # Administrador y supervisor ven todas las cámaras
+            cur.execute("""
+                SELECT c.id_camaras, c.correo, c.nombre, c.estado, c.regional,
+                       c.fecha_creacion, c.fecha_ultima_modificacion, c.cambio_password,
+                       c.usuario_id, c.latitud, c.longitud,
+                       u.nombre as usuario_nombre
+                FROM camaras c
+                LEFT JOIN usuarios u ON c.usuario_id = u.id
+                ORDER BY c.nombre
+            """)
         camaras = cur.fetchall()
         
         # Obtener información del usuario logueado

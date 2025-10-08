@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, render_template, session
 import config
 
 # Import all route blueprints
@@ -18,6 +18,32 @@ app = Flask(__name__, template_folder='template')
 
 # Initialize configuration
 config.init_app(app)
+
+# Error handlers for unauthorized access
+@app.errorhandler(403)
+def forbidden(error):
+    """Handle 403 Forbidden errors (access denied)"""
+    return render_template('error_403.html'), 403
+
+# Make user roles available in all templates
+@app.context_processor
+def inject_user_roles():
+    """Make user roles available in all templates"""
+    from utils.template_helpers import (
+        can_perform_action, is_admin, is_operador, is_supervisor, 
+        has_any_role, get_current_user_roles
+    )
+    
+    user_roles = session.get('user_roles', [])
+    return dict(
+        user_roles=user_roles,
+        can_perform_action=can_perform_action,
+        is_admin=is_admin,
+        is_operador=is_operador,
+        is_supervisor=is_supervisor,
+        has_any_role=has_any_role,
+        get_current_user_roles=get_current_user_roles
+    )
 
 # Register all blueprints
 app.register_blueprint(home_routes)

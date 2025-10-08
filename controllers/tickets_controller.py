@@ -3,6 +3,7 @@ import uuid
 import datetime
 from config import mysql
 from controllers.bitacora_controller import BitacoraController
+from utils.auth_utils import role_required, login_required, action_required, can_user_perform_action, is_owner_or_admin
 
 def generar_id_ticket():
     """Genera un ID único para tickets en formato: TC + YYYYMMDD + 10 """
@@ -14,6 +15,7 @@ def generar_id_ticket():
 
 class TicketsController:
     @staticmethod
+    @action_required('crear')
     def agregar_ticket():
         """Show form to add ticket"""
         try:
@@ -75,15 +77,15 @@ class TicketsController:
 
     @staticmethod
     def editar_ticket(ticket_id):
-        """Show form to edit ticket"""
+        """Show form to edit ticket - ACCESO TEMPORAL SIN RESTRICCIONES"""
         try:
             cur = mysql.connection.cursor()
             
-            # Obtener datos del ticket
+            # Obtener datos del ticket - CORREGIDO: ST_X=longitud, ST_Y=latitud
             cur.execute("""
                 SELECT t.*, 
-                       ST_X(t.location) as latitud, 
-                       ST_Y(t.location) as longitud,
+                       ST_Y(t.location) as latitud, 
+                       ST_X(t.location) as longitud,
                        d.nombre as departamento_nombre,
                        m.nombre as municipio_nombre,
                        tip.nombre as tipologia_nombre,
@@ -146,13 +148,20 @@ class TicketsController:
 
     @staticmethod
     def tickets():
-        """Handle tickets management (create, edit, delete, list)"""
+        """Handle tickets management (create, edit, delete, list) - ACCESO TEMPORAL SIN RESTRICCIONES"""
+        usuario_actual = session.get('usuario', session.get('username'))
+        user_roles = session.get('user_roles', [])
+        
         if request.method == 'POST':
             try:
                 cur = mysql.connection.cursor()
                 
                 # Verificar si es una acción de eliminar
                 if request.form.get('action') == 'delete':
+                    # Solo administrador puede eliminar
+                    if not can_user_perform_action(usuario_actual, 'tickets', 'eliminar'):
+                        return jsonify({'success': False, 'message': 'No tienes permisos para eliminar tickets'})
+                    
                     ticket_id = request.form.get('ticket_id')
                     
                     # Eliminar relaciones
@@ -193,17 +202,20 @@ class TicketsController:
                 nota_final = request.form.get('nota_final') or None
                 
                 if ticket_id == '0':
-                    # Crear nuevo ticket
+                    # Crear nuevo ticket - USANDO SOLO CAMPO POINT
                     nuevo_ticket_id = generar_id_ticket()
                     
+                    print(f"DEBUG: Creando ticket con coordenadas: lat={latitud}, lng={longitud}")
+                    
                     if latitud and longitud:
+                        # POINT(X, Y) donde X=longitud, Y=latitud
                         cur.execute("""
                         INSERT INTO tickets 
                         (id, fecha_hora, regional, usuario_id, departamento_id, municipio_id, tipologia_id, subtipologia_id, 
                          location, descripcion, nota_respaldo, mando, registro, nota_final)
                         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, POINT(%s, %s), %s, %s, %s, %s, %s)
                         """, (nuevo_ticket_id, fecha, regional, id_usuario, id_departamento, id_municipio, id_tipologia, 
-                              id_subtipologia, latitud, longitud, descripcion, nota_respaldo, 
+                              id_subtipologia, longitud, latitud, descripcion, nota_respaldo, 
                               id_mando, registro, nota_final))
                     else:
                         cur.execute("""
@@ -216,7 +228,7 @@ class TicketsController:
                               id_mando, registro, nota_final))
                     
                     ticket_id = nuevo_ticket_id
-                    message = f'Ticket {ticket_id} creado exitosamente'
+                    message = f'Ticket {ticket_id} creado exitosamente con coordenadas: lat={latitud}, lng={longitud}'
                     
                     # Registrar en bitácora
                     BitacoraController.registrar_accion(
@@ -234,8 +246,11 @@ class TicketsController:
                         }
                     )
                 else:
-                    # Actualizar ticket existente
+                    # Actualizar ticket existente - USANDO SOLO CAMPO POINT
+                    print(f"DEBUG: Actualizando ticket {ticket_id} con coordenadas: lat={latitud}, lng={longitud}")
+                    
                     if latitud and longitud:
+                        # POINT(X, Y) donde X=longitud, Y=latitud
                         cur.execute("""
                         UPDATE tickets SET 
                             fecha_hora = %s, regional = %s, usuario_id = %s, departamento_id = %s, municipio_id = %s,
@@ -243,7 +258,7 @@ class TicketsController:
                             descripcion = %s, nota_respaldo = %s, mando = %s, registro = %s, nota_final = %s
                         WHERE id = %s
                         """, (fecha, regional, id_usuario, id_departamento, id_municipio, id_tipologia, 
-                              id_subtipologia, latitud, longitud, descripcion, nota_respaldo, 
+                              id_subtipologia, longitud, latitud, descripcion, nota_respaldo, 
                               id_mando, registro, nota_final, ticket_id))
                     else:
                         cur.execute("""
@@ -260,7 +275,7 @@ class TicketsController:
                     cur.execute("DELETE FROM ticket_despacho WHERE ticket_id = %s", (ticket_id,))
                     cur.execute("DELETE FROM ticket_unidad WHERE ticket_id = %s", (ticket_id,))
                     
-                    message = f'Ticket #{ticket_id} actualizado exitosamente'
+                    message = f'Ticket #{ticket_id} actualizado exitosamente con coordenadas: lat={latitud}, lng={longitud}'
                     
                     # Registrar en bitácora
                     BitacoraController.registrar_accion(
@@ -312,30 +327,58 @@ class TicketsController:
                 descripcion='Accedió al módulo de gestión de tickets'
             )
             
-            # Obtener todos los tickets
-            cur.execute("""
-            SELECT 
-                t.id, t.fecha_hora, t.regional, t.descripcion, t.nota_respaldo, t.registro, t.nota_final,
-                ST_X(t.location) as latitud, ST_Y(t.location) as longitud,
-                d.nombre as departamento_nombre,
-                m.nombre as municipio_nombre,
-                tip.nombre as tipologia_nombre,
-                stip.nombre as subtipologia_nombre,
-                CONCAT(u.nombre) as usuario_nombre,
-                r.nombre as usuario_rol,
-                t.departamento_id as id_departamento, t.municipio_id as id_municipio, 
-                t.tipologia_id as id_tipologia, t.subtipologia_id as id_subtipologia, 
-                t.usuario_id as id_usuario
-            FROM tickets t
-            LEFT JOIN departamentos d ON t.departamento_id = d.id
-            LEFT JOIN municipios m ON t.municipio_id = m.id
-            LEFT JOIN tipologias tip ON t.tipologia_id = tip.id
-            LEFT JOIN subtipologias stip ON t.subtipologia_id = stip.id
-            LEFT JOIN usuarios u ON t.usuario_id = u.id
-            LEFT JOIN usuario_rol ur ON u.id = ur.usuario_id
-            LEFT JOIN roles r ON ur.rol_id = r.id
-            ORDER BY t.fecha_hora DESC
-            """)
+            # Obtener tickets según el rol del usuario
+            if 'operador' in user_roles and 'administrador' not in user_roles:
+                # Operador solo ve sus propios tickets
+                cur.execute("""
+                SELECT 
+                    t.id, t.fecha_hora, t.regional, t.descripcion, t.nota_respaldo, t.registro, t.nota_final,
+                    ST_Y(t.location) as latitud, ST_X(t.location) as longitud,
+                    d.nombre as departamento_nombre,
+                    m.nombre as municipio_nombre,
+                    tip.nombre as tipologia_nombre,
+                    stip.nombre as subtipologia_nombre,
+                    CONCAT(u.nombre) as usuario_nombre,
+                    r.nombre as usuario_rol,
+                    t.departamento_id as id_departamento, t.municipio_id as id_municipio, 
+                    t.tipologia_id as id_tipologia, t.subtipologia_id as id_subtipologia, 
+                    t.usuario_id as id_usuario
+                FROM tickets t
+                LEFT JOIN departamentos d ON t.departamento_id = d.id
+                LEFT JOIN municipios m ON t.municipio_id = m.id
+                LEFT JOIN tipologias tip ON t.tipologia_id = tip.id
+                LEFT JOIN subtipologias stip ON t.subtipologia_id = stip.id
+                LEFT JOIN usuarios u ON t.usuario_id = u.id
+                LEFT JOIN usuario_rol ur ON u.id = ur.usuario_id
+                LEFT JOIN roles r ON ur.rol_id = r.id
+                WHERE u.usuario = %s
+                ORDER BY t.fecha_hora DESC
+                """, (usuario_actual,))
+            else:
+                # Administrador ve todos los tickets
+                cur.execute("""
+                SELECT 
+                    t.id, t.fecha_hora, t.regional, t.descripcion, t.nota_respaldo, t.registro, t.nota_final,
+                    ST_Y(t.location) as latitud, ST_X(t.location) as longitud,
+                    d.nombre as departamento_nombre,
+                    m.nombre as municipio_nombre,
+                    tip.nombre as tipologia_nombre,
+                    stip.nombre as subtipologia_nombre,
+                    CONCAT(u.nombre) as usuario_nombre,
+                    r.nombre as usuario_rol,
+                    t.departamento_id as id_departamento, t.municipio_id as id_municipio, 
+                    t.tipologia_id as id_tipologia, t.subtipologia_id as id_subtipologia, 
+                    t.usuario_id as id_usuario
+                FROM tickets t
+                LEFT JOIN departamentos d ON t.departamento_id = d.id
+                LEFT JOIN municipios m ON t.municipio_id = m.id
+                LEFT JOIN tipologias tip ON t.tipologia_id = tip.id
+                LEFT JOIN subtipologias stip ON t.subtipologia_id = stip.id
+                LEFT JOIN usuarios u ON t.usuario_id = u.id
+                LEFT JOIN usuario_rol ur ON u.id = ur.usuario_id
+                LEFT JOIN roles r ON ur.rol_id = r.id
+                ORDER BY t.fecha_hora DESC
+                """)
             tickets = cur.fetchall()
             
             # Obtener datos para formulario
@@ -386,6 +429,7 @@ class TicketsController:
                                  unidades=[])
 
     @staticmethod
+    @role_required('administrador', 'operador')
     def api_ticket_detalles(ticket_id):
         """API to get complete ticket details"""
         try:
@@ -395,7 +439,7 @@ class TicketsController:
             cur.execute("""
             SELECT 
                 t.*, 
-                ST_X(t.location) as latitud, ST_Y(t.location) as longitud,
+                ST_Y(t.location) as latitud, ST_X(t.location) as longitud,
                 d.nombre as departamento,
                 m.nombre as municipio,
                 tip.nombre as tipologia,
@@ -483,6 +527,7 @@ class TicketsController:
             return jsonify({'success': False, 'message': f'Error: {str(e)}'})
 
     @staticmethod
+    @role_required('administrador', 'operador')
     def detalle_ticket(ticket_id):
         """Show detailed view of a specific ticket"""
         try:

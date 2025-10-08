@@ -38,7 +38,8 @@
   </div>
   {% endif %}
 
-  <!-- Formulario de ticket -->
+  <!-- Formulario de ticket - Solo si puede crear -->
+  {% if can_perform_action('tickets', 'crear') %}
   <div class="ticket-container">
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h5 id="form-title">Crear Nuevo Ticket</h5>
@@ -202,6 +203,7 @@
       </div>
     </form>
   </div>
+  {% endif %}
 
   <!-- Lista de tickets -->
   <div class="table-container">
@@ -287,12 +289,16 @@
               <td>{{ ticket.usuario_rol or 'N/A' }}</td>
               <td>
                 <div class="btn-group" role="group">
+                  {% if can_perform_action('tickets', 'editar') %}
                   <button class="btn btn-outline-warning btn-sm" onclick="editarTicket('{{ ticket.id }}')" title="Editar">
                     <i class="fas fa-edit"></i>
                   </button>
+                  {% endif %}
+                  {% if can_perform_action('tickets', 'eliminar') %}
                   <button class="btn btn-outline-danger btn-sm" onclick="eliminarTicket('{{ ticket.id }}')" title="Eliminar">
                     <i class="fas fa-trash"></i>
                   </button>
+                  {% endif %}
                 </div>
               </td>
             </tr>

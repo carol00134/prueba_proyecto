@@ -3,11 +3,16 @@ from werkzeug.security import generate_password_hash
 from config import mysql
 from utils.bitacora_decorator import registrar_bitacora, registrar_cambios_bitacora
 from controllers.bitacora_controller import BitacoraController
+from utils.auth_utils import action_required, can_user_perform_action
 
 class UsuariosController:
     @staticmethod
+    @action_required('ver')
     def usuarios():
         """Handle users management (list, create, edit, delete)"""
+        usuario_actual = session['usuario']
+        user_roles = session.get('user_roles', [])
+        
         # Obtener datos para mostrar
         cur = mysql.connection.cursor()
         
@@ -23,6 +28,12 @@ class UsuariosController:
         
         if request.method == 'POST':
             accion = request.form.get('accion')
+            
+            # Verificar permisos para crear/editar/eliminar
+            if accion in ['crear', 'editar', 'eliminar'] and not can_user_perform_action(usuario_actual, 'usuarios', accion):
+                error = f"No tienes permisos para {accion} usuarios"
+                return render_template('usuarios.html', error=error, usuarios=[], roles=[])
+            
             username = request.form.get('username')
             password = request.form.get('password')
             nombre = request.form.get('nombre')

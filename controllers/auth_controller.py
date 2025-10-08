@@ -26,12 +26,22 @@ class AuthController:
                 if check_password_hash(user['contraseña'], password):
                     session['usuario'] = username
                     
+                    # Obtener roles del usuario y almacenar en sesión
+                    from utils.auth_utils import get_user_role_info
+                    user_info = get_user_role_info(username)
+                    if user_info:
+                        session['user_roles'] = user_info['roles_list']
+                        session['user_id'] = user_info['id']
+                    else:
+                        session['user_roles'] = []
+                        session['user_id'] = None
+                    
                     # Registrar login en bitácora
                     from controllers.bitacora_controller import BitacoraController
                     BitacoraController.registrar_accion(
                         accion='LOGIN',
                         modulo='Autenticación',
-                        descripcion=f'Usuario {username} inició sesión exitosamente'
+                        descripcion=f'Usuario {username} inició sesión exitosamente con roles: {", ".join(session.get("user_roles", []))}'
                     )
                     
                     return redirect('/')
@@ -81,5 +91,8 @@ class AuthController:
                 descripcion=f'Usuario {session["usuario"]} cerró sesión'
             )
         
+        # Limpiar toda la información de la sesión
         session.pop('usuario', None)
+        session.pop('user_roles', None)
+        session.pop('user_id', None)
         return redirect('/login')
